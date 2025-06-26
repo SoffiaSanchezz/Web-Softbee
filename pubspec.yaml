@@ -1,0 +1,65 @@
+name: sotfbee
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # Dependencias principales
+  cupertino_icons: ^1.0.8
+  lottie: ^3.3.1
+  http: ^1.4.0
+  google_fonts: ^6.2.1
+  flutter_secure_storage: ^9.2.4
+  flutter_animate: ^4.2.0
+  dio: ^5.4.2
+  get_it: ^8.0.3
+  image_picker: ^1.1.2
+  uni_links: ^0.5.1
+  flutter_bloc: ^9.1.1
+  equatable: ^2.0.5
+  intl: ^0.20.2
+  dartz: ^0.10.1
+  uuid: ^4.0.0
+  flutter_tts: ^4.2.3
+  speech_to_text: ^7.1.0
+  fuzzywuzzy: ^1.2.0
+  path_provider: ^2.1.1
+  permission_handler: ^12.0.0+1
+  sound_stream: ^0.4.0
+  audioplayers: ^6.5.0
+  wakelock: ^0.4.0
+  flutter_displaymode: ^0.6.0
+  connectivity_plus: ^6.1.4
+  just_audio: ^0.10.4
+  audio_session: ^0.2.2
+  shared_preferences: ^2.2.2
+  fl_chart: ^1.0.0
+  table_calendar: ^3.0.9
+  
+  # Base de datos
+  sqflite: ^2.3.0
+  sqflite_common_ffi: ^2.3.0
+  sqflite_common_ffi_web: ^1.0.0  # Versión corregida
+  path: ^1.8.0
+  
+  # Almacenamiento alternativo
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/animations/loader.json
+    - assets/images/Logo.png
