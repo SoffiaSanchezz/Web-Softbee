@@ -30,7 +30,16 @@ class EnhancedApiService {
           .timeout(_timeout);
 
       if (response.statusCode == 200) {
-        return Usuario.fromJson(json.decode(response.body));
+        final dynamic decodedBody = json.decode(response.body);
+        if (decodedBody is List && decodedBody.isNotEmpty) {
+          // If it's a list, take the first element
+          return Usuario.fromJson(decodedBody[0]);
+        } else if (decodedBody is Map<String, dynamic>) {
+          // If it's already a map, use it directly
+          return Usuario.fromJson(decodedBody);
+        } else {
+          throw Exception('Formato de respuesta inesperado para perfil de usuario');
+        }
       } else if (response.statusCode == 401) {
         clearAuthToken();
         return null;
@@ -71,10 +80,18 @@ class EnhancedApiService {
 
   // ==================== APIARIOS ====================
   static Future<List<Apiario>> obtenerApiarios({int? userId}) async {
-    try {
-      final String url = userId != null
-          ? '$_baseUrl/users/$userId/apiaries'
-          : '$_baseUrl/apiaries';
+  try {
+    int? effectiveUserId = userId;
+    if (effectiveUserId == null) {
+      final user = await obtenerPerfil();
+      if (user == null) {
+        print('Usuario no autenticado, no se pueden obtener apiarios.');
+        return []; // Or throw an exception if unauthenticated access is not allowed
+      }
+      effectiveUserId = user.id;
+    }
+
+    final String url = '$_baseUrl/users/$effectiveUserId/apiaries';
 
       final response = await http
           .get(Uri.parse(url), headers: _headers)
