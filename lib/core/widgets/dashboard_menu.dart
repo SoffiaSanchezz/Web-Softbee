@@ -10,6 +10,7 @@ import 'package:sotfbee/features/auth/data/models/user_model.dart';
 import 'package:sotfbee/features/auth/presentation/pages/user_profile_page.dart';
 import 'package:flutter_animate/flutter_animate.dart'; // Importa la página corregida
 
+
 class MenuScreen extends StatefulWidget {
   @override
   _EnhancedMenuScreenState createState() => _EnhancedMenuScreenState();
@@ -74,10 +75,33 @@ class _EnhancedMenuScreenState extends State<MenuScreen>
     if (token != null) {
       try {
         final profile = await AuthService.getUserProfile(token);
-        setState(() => _userProfile = profile);
+        if (profile != null) {
+          setState(() => _userProfile = profile);
+        } else {
+          // Si el perfil es nulo (posible token inválido), redirigir al login
+          _handleLogout();
+        }
       } catch (e) {
         print('Error cargando perfil: $e');
+        // En caso de cualquier otro error, también redirigir al login
+        _handleLogout();
       }
+    } else {
+      // Si no hay token, redirigir al login
+      _handleLogout();
+    }
+  }
+
+  void _handleLogout() {
+    AuthStorage.deleteToken();
+    if (mounted) {
+      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Tu sesión ha expirado. Por favor, inicia sesión de nuevo.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
     }
   }
 
@@ -257,6 +281,14 @@ class _EnhancedMenuScreenState extends State<MenuScreen>
                                 UserManagementPage(user: _userProfile),
                           ),
                         );
+                      } else {
+                        // Optionally, show a message that profile is still loading or failed to load
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Cargando perfil de usuario...'),
+                            duration: Duration(seconds: 1),
+                          ),
+                        );
                       }
                     },
                     child: Column(
@@ -272,21 +304,30 @@ class _EnhancedMenuScreenState extends State<MenuScreen>
                               ],
                             ),
                           ),
-                          child: CircleAvatar(
-                            radius: 30,
-                            backgroundImage:
-                                _userProfile != null &&
-                                    _userProfile!.profilePicture !=
-                                        'default_profile.jpg'
-                                ? NetworkImage(
-                                    'https://softbee-back-end.onrender.com/uploads/${_userProfile!.profilePicture}',
-                                  )
-                                : AssetImage('images/userSoftbee.png')
-                                      as ImageProvider,
-                          ),
+                          child: _userProfile != null
+                              ? CircleAvatar(
+                                  radius: 30,
+                                  backgroundImage:
+                                      _userProfile!.profilePicture !=
+                                              'default_profile.jpg'
+                                          ? NetworkImage(
+                                              'https://softbee-back-end.onrender.com/static/profile_pictures/${_userProfile!.profilePicture}',
+                                            )
+                                          : AssetImage('images/userSoftbee.png')
+                                              as ImageProvider,
+                                )
+                              : CircleAvatar(
+                                  radius: 30,
+                                  backgroundColor: Colors.grey[200],
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Color(0xFFFBC209)),
+                                  ),
+                                ),
                         ),
                         SizedBox(height: 6),
-                        // Mostrar primer nombre en lugar del botón de cerrar sesión
+                        // Mostrar primer nombre o un indicador de carga
                         if (_userProfile != null)
                           Text(
                             _getFirstName(_userProfile!.name),
@@ -294,6 +335,15 @@ class _EnhancedMenuScreenState extends State<MenuScreen>
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
                               color: Color(0xFF333333),
+                            ),
+                          )
+                        else
+                          Text(
+                            'Cargando...',
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.grey,
                             ),
                           ),
                       ],

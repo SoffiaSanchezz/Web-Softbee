@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import '../models/enhanced_models.dart';
 
 class EnhancedApiService {
-  static const String _baseUrl = 'https://softbee-back-end.onrender.com/api';
+  static const String _baseUrl = 'https://softbee-back-end-1.onrender.com/api';
   static const Duration _timeout = Duration(seconds: 30);
   static String? _authToken;
 
@@ -26,19 +26,23 @@ class EnhancedApiService {
   static Future<Usuario?> obtenerPerfil() async {
     try {
       final response = await http
-          .get(Uri.parse('$_baseUrl/users'), headers: _headers)
+          .get(Uri.parse('$_baseUrl/users/me'), headers: _headers)
           .timeout(_timeout);
 
       if (response.statusCode == 200) {
         final dynamic decodedBody = json.decode(response.body);
         if (decodedBody is List && decodedBody.isNotEmpty) {
-          // If it's a list, take the first element
           return Usuario.fromJson(decodedBody[0]);
         } else if (decodedBody is Map<String, dynamic>) {
-          // If it's already a map, use it directly
-          return Usuario.fromJson(decodedBody);
+          final user = Usuario.fromJson(decodedBody);
+          print(
+            'Perfil de usuario obtenido: ID=${user.id}, Email=${user.email}',
+          );
+          return user;
         } else {
-          throw Exception('Formato de respuesta inesperado para perfil de usuario');
+          throw Exception(
+            'Formato de respuesta inesperado para perfil de usuario',
+          );
         }
       } else if (response.statusCode == 401) {
         clearAuthToken();
@@ -80,18 +84,19 @@ class EnhancedApiService {
 
   // ==================== APIARIOS ====================
   static Future<List<Apiario>> obtenerApiarios({int? userId}) async {
-  try {
-    int? effectiveUserId = userId;
-    if (effectiveUserId == null) {
-      final user = await obtenerPerfil();
-      if (user == null) {
-        print('Usuario no autenticado, no se pueden obtener apiarios.');
-        return []; // Or throw an exception if unauthenticated access is not allowed
+    try {
+      int? effectiveUserId = userId;
+      if (effectiveUserId == null) {
+        final user = await obtenerPerfil();
+        if (user == null) {
+          print('Usuario no autenticado, no se pueden obtener apiarios.');
+          return [];
+        }
+        effectiveUserId = user.id;
       }
-      effectiveUserId = user.id;
-    }
 
-    final String url = '$_baseUrl/users/$effectiveUserId/apiaries';
+      final String url = '$_baseUrl/users/$effectiveUserId/apiaries';
+      print('Obteniendo apiarios para userId: $effectiveUserId desde: $url');
 
       final response = await http
           .get(Uri.parse(url), headers: _headers)
@@ -211,10 +216,10 @@ class EnhancedApiService {
         final List<dynamic> data = json.decode(response.body);
         return data.map((json) => Colmena.fromJson(json)).toList();
       } else {
-        return []; // Retorna lista vacía si no hay colmenas
+        return [];
       }
     } catch (e) {
-      return []; // Retorna lista vacía en caso de error
+      return [];
     }
   }
 
@@ -258,10 +263,10 @@ class EnhancedApiService {
         final List<dynamic> data = json.decode(response.body);
         return data.map((json) => Pregunta.fromJson(json)).toList();
       } else {
-        return []; // Retorna lista vacía si no hay preguntas
+        return [];
       }
     } catch (e) {
-      return []; // Retorna lista vacía en caso de error
+      return [];
     }
   }
 
