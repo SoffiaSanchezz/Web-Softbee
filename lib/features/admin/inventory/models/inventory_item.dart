@@ -20,7 +20,7 @@ class InventoryItem {
   factory InventoryItem.fromJson(Map<String, dynamic> json) {
     return InventoryItem(
       id: json['id'] ?? 0,
-      itemName: json['item_name'] ?? '',
+      itemName: json['name'] ?? '',
       quantity: json['quantity'] ?? 0,
       unit: json['unit'] ?? 'unit',
       apiaryId: json['apiary_id'] ?? 1,
@@ -32,7 +32,7 @@ class InventoryItem {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'item_name': itemName,
+      'name': itemName,
       'quantity': quantity,
       'unit': unit,
       'apiary_id': apiaryId,
@@ -43,15 +43,14 @@ class InventoryItem {
 
   Map<String, dynamic> toCreateJson() {
     return {
-      'item_name': itemName,
+      'name': itemName,
       'quantity': quantity,
       'unit': unit,
-      'apiary_id': apiaryId,
     };
   }
 
   Map<String, dynamic> toUpdateJson() {
-    return {'item_name': itemName, 'quantity': quantity, 'unit': unit};
+    return {'name': itemName, 'quantity': quantity, 'unit': unit};
   }
 
   InventoryItem copyWith({

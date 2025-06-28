@@ -1,32 +1,28 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:sotfbee/features/auth/data/datasources/auth_local_datasource.dart';
 import '../models/enhanced_models.dart';
 
 class EnhancedApiService {
   static const String _baseUrl = 'https://softbee-back-end-1.onrender.com/api';
   static const Duration _timeout = Duration(seconds: 30);
-  static String? _authToken;
 
-  static Map<String, String> get _headers => {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-    if (_authToken != null) 'Authorization': 'Bearer $_authToken',
-  };
+  static Future<Map<String, String>> get _headers async {
+    final token = await AuthStorage.getToken();
+    return {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+  }
 
   // ==================== AUTH ====================
-  static void setAuthToken(String token) {
-    _authToken = token;
-  }
-
-  static void clearAuthToken() {
-    _authToken = null;
-  }
 
   static Future<Usuario?> obtenerPerfil() async {
     try {
       final response = await http
-          .get(Uri.parse('$_baseUrl/users/me'), headers: _headers)
+          .get(Uri.parse('$_baseUrl/users/me'), headers: await _headers)
           .timeout(_timeout);
 
       if (response.statusCode == 200) {
@@ -45,7 +41,7 @@ class EnhancedApiService {
           );
         }
       } else if (response.statusCode == 401) {
-        clearAuthToken();
+        AuthStorage.deleteToken();
         return null;
       } else {
         throw Exception('Error al obtener perfil: ${response.statusCode}');
@@ -59,8 +55,8 @@ class EnhancedApiService {
     try {
       final response = await http
           .post(
-            Uri.parse('$_baseUrl/auth/login'),
-            headers: _headers,
+            Uri.parse('$_baseUrl/login'),
+            headers: await _headers,
             body: json.encode({'email': email, 'password': password}),
           )
           .timeout(_timeout);
@@ -69,7 +65,7 @@ class EnhancedApiService {
         final result = json.decode(response.body);
         final token = result['token'] ?? result['access_token'];
         if (token != null) {
-          setAuthToken(token);
+          await AuthStorage.saveToken(token);
           return token;
         } else {
           throw Exception('Token no recibido');
@@ -99,7 +95,7 @@ class EnhancedApiService {
       print('Obteniendo apiarios para userId: $effectiveUserId desde: $url');
 
       final response = await http
-          .get(Uri.parse(url), headers: _headers)
+          .get(Uri.parse(url), headers: await _headers)
           .timeout(_timeout);
 
       if (response.statusCode == 200) {
@@ -108,7 +104,7 @@ class EnhancedApiService {
       } else if (response.statusCode == 404) {
         return [];
       } else if (response.statusCode == 401) {
-        clearAuthToken();
+        AuthStorage.deleteToken();
         throw Exception('Sesión expirada');
       } else {
         throw Exception('Error al obtener apiarios: ${response.statusCode}');
@@ -130,7 +126,7 @@ class EnhancedApiService {
       final response = await http
           .post(
             Uri.parse('$_baseUrl/apiaries'),
-            headers: _headers,
+            headers: await _headers,
             body: json.encode({
               'name': data['name'] ?? data['nombre'],
               'user_id': user.id,
@@ -152,7 +148,7 @@ class EnhancedApiService {
   static Future<Apiario?> obtenerApiario(int id) async {
     try {
       final response = await http
-          .get(Uri.parse('$_baseUrl/apiaries/$id'), headers: _headers)
+          .get(Uri.parse('$_baseUrl/apiaries/$id'), headers: await _headers)
           .timeout(_timeout);
 
       if (response.statusCode == 200) {
@@ -175,7 +171,7 @@ class EnhancedApiService {
       final response = await http
           .put(
             Uri.parse('$_baseUrl/apiaries/$id'),
-            headers: _headers,
+            headers: await _headers,
             body: json.encode(data),
           )
           .timeout(_timeout);
@@ -191,7 +187,7 @@ class EnhancedApiService {
   static Future<void> eliminarApiario(int id) async {
     try {
       final response = await http
-          .delete(Uri.parse('$_baseUrl/apiaries/$id'), headers: _headers)
+          .delete(Uri.parse('$_baseUrl/apiaries/$id'), headers: await _headers)
           .timeout(_timeout);
 
       if (response.statusCode != 200) {
@@ -202,24 +198,23 @@ class EnhancedApiService {
     }
   }
 
-  // ==================== COLMENAS ====================
+  // ========== Métodos para Colmenas ==========
   static Future<List<Colmena>> obtenerColmenas(int apiarioId) async {
     try {
       final response = await http
           .get(
             Uri.parse('$_baseUrl/apiaries/$apiarioId/hives'),
-            headers: _headers,
+            headers: await _headers,
           )
           .timeout(_timeout);
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         return data.map((json) => Colmena.fromJson(json)).toList();
-      } else {
-        return [];
       }
+      throw Exception('Error al obtener colmenas: ${response.statusCode}');
     } catch (e) {
-      return [];
+      throw Exception('Error de conexión: $e');
     }
   }
 
@@ -228,22 +223,58 @@ class EnhancedApiService {
       final response = await http
           .post(
             Uri.parse('$_baseUrl/hives'),
-            headers: _headers,
+            headers: await _headers,
             body: json.encode(data),
           )
           .timeout(_timeout);
 
       if (response.statusCode == 201) {
-        final result = json.decode(response.body);
-        return result['id'] ?? -1;
-      } else {
-        throw Exception('Error al crear colmena: ${response.statusCode}');
+        return json.decode(response.body)['id'];
+      }
+      throw Exception('Error al crear colmena: ${response.statusCode}');
+    } catch (e) {
+      throw Exception('Error de conexión: $e');
+    }
+  }
+
+  static Future<void> actualizarColmena(
+    int colmenaId,
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      final response = await http
+          .put(
+            Uri.parse('$_baseUrl/hives/$colmenaId'),
+            headers: await _headers,
+            body: json.encode(data),
+          )
+          .timeout(_timeout);
+
+      if (response.statusCode != 200) {
+        throw Exception('Error al actualizar: ${response.statusCode}');
       }
     } catch (e) {
       throw Exception('Error de conexión: $e');
     }
   }
 
+  static Future<void> eliminarColmena(int colmenaId) async {
+    try {
+      final response = await http
+          .delete(
+            Uri.parse('$_baseUrl/hives/$colmenaId'),
+            headers: await _headers,
+          )
+          .timeout(_timeout);
+
+      if (response.statusCode != 200) {
+        throw Exception('Error al eliminar: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión: $e');
+    }
+  }
+  
   // ==================== PREGUNTAS ====================
   static Future<List<Pregunta>> obtenerPreguntasApiario(
     int apiarioId, {
@@ -256,7 +287,7 @@ class EnhancedApiService {
       }
 
       final response = await http
-          .get(Uri.parse(url), headers: _headers)
+          .get(Uri.parse(url), headers: await _headers)
           .timeout(_timeout);
 
       if (response.statusCode == 200) {
@@ -275,7 +306,7 @@ class EnhancedApiService {
       final response = await http
           .post(
             Uri.parse('$_baseUrl/questions'),
-            headers: _headers,
+            headers: await _headers,
             body: json.encode(pregunta.toJson()),
           )
           .timeout(_timeout);
@@ -299,7 +330,7 @@ class EnhancedApiService {
       final response = await http
           .put(
             Uri.parse('$_baseUrl/questions/$preguntaId'),
-            headers: _headers,
+            headers: await _headers,
             body: json.encode(data),
           )
           .timeout(_timeout);
@@ -317,7 +348,7 @@ class EnhancedApiService {
       final response = await http
           .delete(
             Uri.parse('$_baseUrl/questions/$preguntaId'),
-            headers: _headers,
+            headers: await _headers,
           )
           .timeout(_timeout);
 
@@ -337,7 +368,7 @@ class EnhancedApiService {
       final response = await http
           .put(
             Uri.parse('$_baseUrl/apiaries/$apiarioId/questions/reorder'),
-            headers: _headers,
+            headers: await _headers,
             body: json.encode({'order': orden}),
           )
           .timeout(_timeout);
@@ -371,7 +402,7 @@ class EnhancedApiService {
       }
 
       final response = await http
-          .get(Uri.parse(url), headers: _headers)
+          .get(Uri.parse(url), headers: await _headers)
           .timeout(_timeout);
 
       if (response.statusCode == 200) {
@@ -392,7 +423,7 @@ class EnhancedApiService {
       final response = await http
           .post(
             Uri.parse('$_baseUrl/queen-notifications'),
-            headers: _headers,
+            headers: await _headers,
             body: json.encode(notificacion.toJson()),
           )
           .timeout(_timeout);
@@ -413,7 +444,7 @@ class EnhancedApiService {
       final response = await http
           .put(
             Uri.parse('$_baseUrl/queen-notifications/$notificacionId/read'),
-            headers: _headers,
+            headers: await _headers,
           )
           .timeout(_timeout);
 
@@ -429,7 +460,7 @@ class EnhancedApiService {
   static Future<bool> verificarConexion() async {
     try {
       final response = await http
-          .get(Uri.parse('$_baseUrl/health'), headers: _headers)
+          .get(Uri.parse('$_baseUrl/health'), headers: await _headers)
           .timeout(Duration(seconds: 10));
       return response.statusCode == 200;
     } catch (e) {
@@ -458,7 +489,7 @@ class EnhancedApiService {
       }
 
       final response = await http
-          .get(Uri.parse(url), headers: _headers)
+          .get(Uri.parse(url), headers: await _headers)
           .timeout(_timeout);
 
       if (response.statusCode == 200) {

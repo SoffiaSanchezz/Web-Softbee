@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:sotfbee/features/admin/monitoring/presentation/beehive_management_page.dart';
 import 'package:sotfbee/features/admin/monitoring/service/enhaced_api_service.dart';
 import 'package:sotfbee/features/admin/monitoring/widgets/enhanced_card_widget.dart';
 import '../models/enhanced_models.dart';
@@ -363,19 +364,32 @@ class _ApiariosManagementScreenState extends State<ApiariosManagementScreen>
                           ),
                           PopupMenuItem(
                             value: 'colmenas',
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.hive,
-                                  color: colorAmarillo,
-                                  size: 18,
-                                ),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Ver Colmenas',
-                                  style: GoogleFonts.poppins(),
-                                ),
-                              ],
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.pop(
+                                  context,
+                                ); // Cierra el menú emergente
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ColmenasManagementScreen(),
+                                  ), // Reemplaza con tu widget de destino
+                                );
+                              },
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.hive,
+                                    color: colorAmarillo,
+                                    size: 18,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Ver Colmenas',
+                                    style: GoogleFonts.poppins(),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                           PopupMenuItem(
