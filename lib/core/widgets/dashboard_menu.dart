@@ -23,6 +23,7 @@ class _EnhancedMenuScreenState extends State<MenuScreen>
   int? _hoveredIndex;
   Offset _mousePosition = Offset.zero;
   UserProfile? _userProfile;
+  Map<String, dynamic> _dashboardStats = {};
 
   final List<MenuItemData> _menuItems = [
     MenuItemData(
@@ -494,18 +495,26 @@ class _EnhancedMenuScreenState extends State<MenuScreen>
 
   Widget _buildDesktopStats() {
     final stats = [
-      {'label': 'Colmenas Activas', 'value': '24', 'color': Color(0xFFFBC209)},
       {
-        'label': 'Producción Mensual',
-        'value': '156kg',
-        'color': Color(0xFFFFA500),
+        'label': 'Apiarios',
+        'value': _dashboardStats['total_apiarios']?.toString() ?? '0',
+        'color': Color(0xFFFBC209)
       },
       {
-        'label': 'Inspecciones Pendientes',
-        'value': '3',
-        'color': Color(0xFFFFB700),
+        'label': 'Colmenas',
+        'value': _dashboardStats['total_colmenas']?.toString() ?? '0',
+        'color': Color(0xFFFFA500)
       },
-      {'label': 'Alertas', 'value': '1', 'color': Colors.red},
+      {
+        'label': 'Monitoreos',
+        'value': _dashboardStats['total_monitoreos']?.toString() ?? '0',
+        'color': Color(0xFFFFB700)
+      },
+      {
+        'label': 'Pendientes',
+        'value': _dashboardStats['monitoreos_pendientes']?.toString() ?? '0',
+        'color': Colors.red
+      },
     ];
 
     return Container(
