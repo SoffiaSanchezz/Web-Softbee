@@ -4,7 +4,7 @@ import 'package:sotfbee/features/admin/reports/model/api_models.dart';
 
 class ApiService {
   static const String baseUrl =
-      'https://softbee-back-end.onrender.com/api'; // Cambia por tu URL del backend
+      'https://softbee-back-end-1.onrender.com/api'; // Cambia por tu URL del backend
 
   // Headers comunes
   static Map<String, String> get headers => {

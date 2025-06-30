@@ -24,7 +24,7 @@
                   radius: 60,
                   backgroundImage: user.profilePicture != 'default_profile.jpg'
                       ? NetworkImage(
-                          'https://softbee-back-end-1.onrender.com/api/uploads/${user.profilePicture}',
+                          'https://softbee-back-end-1.onrender.com/static/profile_pictures/${user.profilePicture}',
                         )
                       : AssetImage('images/userSoftbee.png') as ImageProvider,
                 ),

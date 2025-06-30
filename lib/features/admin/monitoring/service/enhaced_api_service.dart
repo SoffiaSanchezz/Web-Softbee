@@ -10,10 +10,13 @@ class EnhancedApiService {
 
   static Future<Map<String, String>> get _headers async {
     final token = await AuthStorage.getToken();
+    if (token == null || token.isEmpty) {
+      throw Exception('No se encontró el token de autenticación. Por favor, inicia sesión de nuevo.');
+    }
     return {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
-      if (token != null) 'Authorization': 'Bearer $token',
+      'Authorization': 'Bearer $token',
     };
   }
 
@@ -27,9 +30,7 @@ class EnhancedApiService {
 
       if (response.statusCode == 200) {
         final dynamic decodedBody = json.decode(response.body);
-        if (decodedBody is List && decodedBody.isNotEmpty) {
-          return Usuario.fromJson(decodedBody[0]);
-        } else if (decodedBody is Map<String, dynamic>) {
+        if (decodedBody is Map<String, dynamic>) {
           final user = Usuario.fromJson(decodedBody);
           print(
             'Perfil de usuario obtenido: ID=${user.id}, Email=${user.email}',
@@ -274,7 +275,7 @@ class EnhancedApiService {
       throw Exception('Error de conexión: $e');
     }
   }
-  
+
   // ==================== PREGUNTAS ====================
   static Future<List<Pregunta>> obtenerPreguntasApiario(
     int apiarioId, {
@@ -294,14 +295,14 @@ class EnhancedApiService {
         final List<dynamic> data = json.decode(response.body);
         return data.map((json) => Pregunta.fromJson(json)).toList();
       } else {
-        return [];
+        throw Exception('Error al obtener preguntas: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      return [];
+      rethrow;
     }
   }
 
-  static Future<String> crearPregunta(Pregunta pregunta) async {
+  static Future<int> crearPregunta(Pregunta pregunta) async {
     try {
       final response = await http
           .post(
@@ -313,9 +314,11 @@ class EnhancedApiService {
 
       if (response.statusCode == 201) {
         final result = json.decode(response.body);
-        return result['id'] ?? '';
+        return result['id'];
       } else {
-        throw Exception('Error al crear pregunta: ${response.statusCode}');
+        final errorBody = json.decode(response.body);
+        throw Exception(
+            'Error al crear pregunta: ${response.statusCode} - ${errorBody['error'] ?? 'Error desconocido'}');
       }
     } catch (e) {
       throw Exception('Error de conexión: $e');
@@ -323,7 +326,7 @@ class EnhancedApiService {
   }
 
   static Future<void> actualizarPregunta(
-    String preguntaId,
+    int preguntaId,
     Map<String, dynamic> data,
   ) async {
     try {
@@ -343,7 +346,7 @@ class EnhancedApiService {
     }
   }
 
-  static Future<void> eliminarPregunta(String preguntaId) async {
+  static Future<void> eliminarPregunta(int preguntaId) async {
     try {
       final response = await http
           .delete(
@@ -510,5 +513,118 @@ class EnhancedApiService {
         'monitoreos_pendientes': 0,
       };
     }
+  }
+
+  static Future<Map<String, dynamic>> loadDefaultQuestions(int apiaryId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/questions/load_defaults/$apiaryId'),
+        headers: await _headers,
+      ).timeout(_timeout);
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Error al cargar preguntas por defecto: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión al cargar preguntas por defecto: $e');
+    }
+  }
+  
+  // Agregado para el banco de preguntas
+  static Future<List<PreguntaTemplate>> obtenerPlantillasPreguntas() async {
+    // Esto debería idealmente venir de un endpoint, pero lo simulamos
+    // ya que el backend carga desde un JSON local.
+    // Para una implementación real, el backend debería exponer este JSON.
+    // Aquí simulamos la respuesta que el frontend esperaría.
+    final String response = '''{
+      "preguntas": [
+        {
+          "id": "estado_general",
+          "categoria": "Estado de la Colmena",
+          "pregunta": "¿Cuál es el estado general de la colmena?",
+          "tipo": "opciones",
+          "obligatoria": true,
+          "opciones": ["Excelente", "Bueno", "Regular", "Malo"]
+        },
+        {
+          "id": "poblacion",
+          "categoria": "Estado de la Colmena",
+          "pregunta": "Nivel de población",
+          "tipo": "opciones",
+          "obligatoria": true,
+          "opciones": ["Alta", "Media", "Baja"]
+        },
+        {
+          "id": "comportamiento",
+          "categoria": "Estado de la Colmena",
+          "pregunta": "Comportamiento de las abejas",
+          "tipo": "opciones",
+          "obligatoria": true,
+          "opciones": ["Dócil", "Nervioso", "Agresivo"]
+        },
+        {
+          "id": "cantidad_cria",
+          "categoria": "Producción",
+          "pregunta": "Cantidad de cuadros de cría",
+          "tipo": "numero",
+          "obligatoria": true,
+          "min": 0,
+          "max": 20
+        },
+        {
+          "id": "cantidad_miel",
+          "categoria": "Producción",
+          "pregunta": "Cantidad de cuadros de miel",
+          "tipo": "numero",
+          "obligatoria": true,
+          "min": 0,
+          "max": 20
+        },
+        {
+          "id": "presencia_reina",
+          "categoria": "Salud",
+          "pregunta": "¿Se observó a la reina?",
+          "tipo": "opciones",
+          "obligatoria": true,
+          "opciones": ["Sí", "No"]
+        },
+        {
+          "id": "celdas_reales",
+          "categoria": "Salud",
+          "pregunta": "¿Presencia de celdas reales?",
+          "tipo": "opciones",
+          "obligatoria": true,
+          "opciones": ["Sí", "No"]
+        },
+        {
+          "id": "enfermedades",
+          "categoria": "Salud",
+          "pregunta": "¿Signos de enfermedades (Loque, Varroa, etc.)?",
+          "tipo": "texto",
+          "obligatoria": false
+        },
+        {
+          "id": "necesita_alimentacion",
+          "categoria": "Alimentación",
+          "pregunta": "¿Necesita alimentación suplementaria?",
+          "tipo": "opciones",
+          "obligatoria": true,
+          "opciones": ["Sí", "No"]
+        },
+        {
+          "id": "espacio_disponible",
+          "categoria": "Mantenimiento",
+          "pregunta": "¿Necesita más espacio (alzas)?",
+          "tipo": "opciones",
+          "obligatoria": true,
+          "opciones": ["Sí", "No"]
+        }
+      ]
+    }''';
+    final data = json.decode(response);
+    final List<dynamic> preguntasJson = data['preguntas'];
+    return preguntasJson.map((json) => PreguntaTemplate.fromJson(json)).toList();
   }
 }

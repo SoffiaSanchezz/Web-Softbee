@@ -130,7 +130,7 @@ class RespuestaModel {
 }
 
 class QuestionModel {
-  final String id;
+  final int id;
   final int apiaryId;
   final String questionText;
   final String questionType;
