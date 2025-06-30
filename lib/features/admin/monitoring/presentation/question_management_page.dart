@@ -21,7 +21,7 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
   final TextEditingController _minController = TextEditingController();
   final TextEditingController _maxController = TextEditingController();
   final TextEditingController _bankSearchController = TextEditingController();
-  final TextEditingController _categoryController = TextEditingController(); // Añadido
+  final TextEditingController _categoryController = TextEditingController();
 
   // Estado
   List<Pregunta> preguntas = [];
@@ -42,12 +42,12 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
   String? selectedCategoria;
   bool showQuestionBank = false;
 
-  // Colores
+  // Colores actualizados - eliminando azules
   final Color colorAmarillo = const Color(0xFFFBC209);
   final Color colorNaranja = const Color(0xFFFF9800);
   final Color colorAmbarClaro = const Color(0xFFFFF8E1);
   final Color colorVerde = const Color(0xFF4CAF50);
-  final Color colorAzul = const Color(0xFF2196F3);
+  final Color colorAmarilloOscuro = const Color(0xFFF57C00); // Reemplaza azul
   final Color colorMorado = const Color(0xFF9C27B0);
 
   @override
@@ -159,23 +159,19 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
       }
       final Pregunta movedItem = filteredPreguntas.removeAt(oldIndex);
       filteredPreguntas.insert(newIndex, movedItem);
-
       List<Pregunta> tempAllQuestions = [];
       Set<String> filteredKeys = filteredPreguntas
           .map((p) => p.flutterKey)
           .toSet();
-
       tempAllQuestions.addAll(filteredPreguntas);
       for (var q in preguntas) {
         if (!filteredKeys.contains(q.flutterKey)) {
           tempAllQuestions.add(q);
         }
       }
-
       for (int i = 0; i < tempAllQuestions.length; i++) {
         tempAllQuestions[i] = tempAllQuestions[i].copyWith(orden: i + 1);
       }
-
       preguntas = tempAllQuestions;
       _filterPreguntas();
     });
@@ -225,7 +221,6 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth >= 768;
-
     return Scaffold(
       backgroundColor: colorAmbarClaro,
       appBar: AppBar(
@@ -242,7 +237,7 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
                 FloatingActionButton(
                   heroTag: "bank",
                   onPressed: _showQuestionBankDialog,
-                  backgroundColor: colorAzul,
+                  backgroundColor: colorAmarilloOscuro, // Cambiado de azul
                   child: Icon(Icons.library_books, color: Colors.white),
                 ).animate().scale(delay: 600.ms),
                 SizedBox(height: 12),
@@ -369,7 +364,7 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
                     label: 'Banco',
                     value: questionBankTemplates.length.toString(),
                     icon: Icons.library_books,
-                    color: colorAzul,
+                    color: colorAmarilloOscuro, // Cambiado de azul
                     onTap: _showQuestionBankDialog,
                   ),
                 ),
@@ -420,7 +415,13 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
     );
   }
 
-  Widget _buildStatCard({    required String label,    required String value,    required IconData icon,    required Color color,    VoidCallback? onTap,  }) {
+  Widget _buildStatCard({
+    required String label,
+    required String value,
+    required IconData icon,
+    required Color color,
+    VoidCallback? onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -517,7 +518,6 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
         itemBuilder: (context, index) {
           final category = sortedCategories[index];
           final preguntasInCategory = groupedPreguntas[category]!;
-
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -538,14 +538,16 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
                 onReorder: (oldIndex, newIndex) {
                   // Find the actual indices in the main list
                   final oldItem = preguntasInCategory[oldIndex];
-                  final oldListIndex = preguntas.indexWhere((p) => p.id == oldItem.id);
-
+                  final oldListIndex = preguntas.indexWhere(
+                    (p) => p.id == oldItem.id,
+                  );
                   if (newIndex > oldIndex) {
                     newIndex -= 1;
                   }
                   final newItem = preguntasInCategory[newIndex];
-                  final newListIndex = preguntas.indexWhere((p) => p.id == newItem.id);
-
+                  final newListIndex = preguntas.indexWhere(
+                    (p) => p.id == newItem.id,
+                  );
                   _reorderPreguntas(oldListIndex, newListIndex);
                 },
                 proxyDecorator: _proxyDecorator,
@@ -566,7 +568,9 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [
-                              pregunta.activa ? Colors.white : Colors.grey[100]!,
+                              pregunta.activa
+                                  ? Colors.white
+                                  : Colors.grey[100]!,
                               pregunta.activa
                                   ? colorAmbarClaro.withOpacity(0.2)
                                   : Colors.grey[200]!,
@@ -642,7 +646,10 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
                                         _getTypeColor(pregunta.tipoRespuesta),
                                       ),
                                       if (pregunta.obligatoria)
-                                        _buildInfoChip('Obligatoria', Colors.red),
+                                        _buildInfoChip(
+                                          'Obligatoria',
+                                          Colors.red,
+                                        ),
                                       if (pregunta.opciones != null &&
                                           pregunta.opciones!.isNotEmpty)
                                         _buildInfoChip(
@@ -683,10 +690,11 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
                                                 .take(4)
                                                 .map((opcion) {
                                                   return Container(
-                                                    padding: EdgeInsets.symmetric(
-                                                      horizontal: 6,
-                                                      vertical: 2,
-                                                    ),
+                                                    padding:
+                                                        EdgeInsets.symmetric(
+                                                          horizontal: 6,
+                                                          vertical: 2,
+                                                        ),
                                                     decoration: BoxDecoration(
                                                       color: Colors.white,
                                                       borderRadius:
@@ -700,12 +708,13 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
                                                     ),
                                                     child: Text(
                                                       opcion.valor,
-                                                      style: GoogleFonts.poppins(
-                                                        fontSize: 9,
-                                                        color: colorVerde,
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                      ),
+                                                      style:
+                                                          GoogleFonts.poppins(
+                                                            fontSize: 9,
+                                                            color: colorVerde,
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                          ),
                                                     ),
                                                   );
                                                 })
@@ -946,7 +955,9 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
                 Container(
                   padding: EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: [colorAzul, colorMorado]),
+                    gradient: LinearGradient(
+                      colors: [colorAmarilloOscuro, colorNaranja],
+                    ), // Cambiado de azul-morado
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(20),
                       topRight: Radius.circular(20),
@@ -993,7 +1004,10 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
                         controller: _bankSearchController,
                         decoration: InputDecoration(
                           hintText: 'Buscar en el banco de preguntas...',
-                          prefixIcon: Icon(Icons.search, color: colorAzul),
+                          prefixIcon: Icon(
+                            Icons.search,
+                            color: colorAmarilloOscuro,
+                          ), // Cambiado de azul
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
@@ -1055,7 +1069,9 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
           style: GoogleFonts.poppins(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : colorAzul,
+            color: isSelected
+                ? Colors.white
+                : colorAmarilloOscuro, // Cambiado de azul
           ),
         ),
         selected: isSelected,
@@ -1065,7 +1081,7 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
           });
         },
         backgroundColor: Colors.grey[100],
-        selectedColor: colorAzul,
+        selectedColor: colorAmarilloOscuro, // Cambiado de azul
         checkmarkColor: Colors.white,
       ),
     );
@@ -1073,7 +1089,6 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
 
   Widget _buildQuestionBankList(StateSetter setDialogState) {
     List<PreguntaTemplate> filteredTemplates = questionBankTemplates;
-
     if (selectedCategoria != null) {
       filteredTemplates = filteredTemplates
           .where((t) => t.categoria == selectedCategoria)
@@ -1268,14 +1283,14 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
                     icon: Icon(
                       Icons.add_circle_outline,
                       size: 16,
-                      color: colorAzul,
+                      color: colorAmarilloOscuro, // Cambiado de azul
                     ),
                     label: Text(
                       'Agregar Pregunta',
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: colorAzul,
+                        color: colorAmarilloOscuro, // Cambiado de azul
                       ),
                     ),
                   ),
@@ -1301,17 +1316,16 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
       case 'Mantenimiento':
         return colorMorado;
       default:
-        return colorAzul;
+        return colorAmarilloOscuro; // Cambiado de azul
     }
   }
 
   void _addQuestionFromTemplate(PreguntaTemplate template) {
     Navigator.pop(context);
     _preguntaController.text = template.texto;
-    _categoryController.text = template.categoria; // Añadido
+    _categoryController.text = template.categoria;
     tipoRespuestaSeleccionado = template.tipoRespuesta;
     obligatoriaSeleccionada = template.obligatoria;
-
     if (template.opciones != null) {
       opcionesTemporales = template.opciones!
           .asMap()
@@ -1321,23 +1335,20 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
     } else {
       opcionesTemporales.clear();
     }
-
     if (template.min != null) {
       _minController.text = template.min.toString();
     }
     if (template.max != null) {
       _maxController.text = template.max.toString();
     }
-
     _showPreguntaDialog();
   }
 
   void _showPreguntaDialog({Pregunta? pregunta}) {
     final isEditing = pregunta != null;
-
     if (isEditing) {
       _preguntaController.text = pregunta.texto;
-      _categoryController.text = pregunta.categoria ?? ''; // Añadido
+      _categoryController.text = pregunta.categoria ?? '';
       tipoRespuestaSeleccionado = pregunta.tipoRespuesta ?? "texto";
       obligatoriaSeleccionada = pregunta.obligatoria;
       opcionesTemporales = List.from(pregunta.opciones ?? []);
@@ -1350,7 +1361,7 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
       }
     } else if (!isEditing && _preguntaController.text.isEmpty) {
       _preguntaController.clear();
-      _categoryController.clear(); // Añadido
+      _categoryController.clear();
       tipoRespuestaSeleccionado = "texto";
       obligatoriaSeleccionada = false;
       opcionesTemporales.clear();
@@ -1985,20 +1996,26 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
             Container(
               padding: EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.blue[50],
+                color: colorAmarillo.withOpacity(0.1), // Cambiado de azul
                 borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: Colors.blue[200]!),
+                border: Border.all(
+                  color: colorAmarillo.withOpacity(0.3),
+                ), // Cambiado de azul
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, color: Colors.blue[700], size: 16),
+                  Icon(
+                    Icons.info_outline,
+                    color: colorAmarilloOscuro,
+                    size: 16,
+                  ), // Cambiado de azul
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       '${opcionesTemporales.length} opciones configuradas. Los usuarios podrán seleccionar una de estas opciones.',
                       style: GoogleFonts.poppins(
                         fontSize: 11,
-                        color: Colors.blue[700],
+                        color: colorAmarilloOscuro, // Cambiado de azul
                       ),
                     ),
                   ),
@@ -2035,10 +2052,12 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
   void _addOpcion(StateSetter setDialogState) {
     if (_opcionController.text.trim().isNotEmpty) {
       setDialogState(() {
-        opcionesTemporales.add(Opcion(
-          valor: _opcionController.text.trim(),
-          orden: opcionesTemporales.length + 1,
-        ));
+        opcionesTemporales.add(
+          Opcion(
+            valor: _opcionController.text.trim(),
+            orden: opcionesTemporales.length + 1,
+          ),
+        );
         _opcionController.clear();
       });
     }
@@ -2049,16 +2068,26 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
       _showSnackBar('Por favor, selecciona un apiario primero.', Colors.red);
       return;
     }
+
     if (_preguntaController.text.trim().isEmpty) {
       _showSnackBar('La pregunta no puede estar vacía.', Colors.red);
       return;
     }
+
     if (tipoRespuestaSeleccionado == 'opciones' && opcionesTemporales.isEmpty) {
-      _showSnackBar('Las preguntas de opción requieren al menos una opción.', Colors.red);
+      _showSnackBar(
+        'Las preguntas de opción requieren al menos una opción.',
+        Colors.red,
+      );
       return;
     }
-    if (tipoRespuestaSeleccionado == 'numero' && (_minController.text.isEmpty || _maxController.text.isEmpty)) {
-      _showSnackBar('Las preguntas numéricas requieren un rango min/max.', Colors.red);
+
+    if (tipoRespuestaSeleccionado == 'numero' &&
+        (_minController.text.isEmpty || _maxController.text.isEmpty)) {
+      _showSnackBar(
+        'Las preguntas numéricas requieren un rango min/max.',
+        Colors.red,
+      );
       return;
     }
 
@@ -2084,9 +2113,13 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
         await EnhancedApiService.crearPregunta(newQuestion);
         _showSnackBar('Pregunta creada correctamente', colorVerde);
       } else {
-        await EnhancedApiService.actualizarPregunta(pregunta.id, newQuestion.toJson());
+        await EnhancedApiService.actualizarPregunta(
+          pregunta.id,
+          newQuestion.toJson(),
+        );
         _showSnackBar('Pregunta actualizada correctamente', colorVerde);
       }
+
       await _loadData();
     } catch (e) {
       _showSnackBar('Error al guardar pregunta: $e', Colors.red);
@@ -2095,9 +2128,13 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
 
   void _duplicatePregunta(Pregunta pregunta) async {
     if (selectedApiarioId == null) {
-      _showSnackBar('Por favor, selecciona un apiario primero para duplicar.', Colors.red);
+      _showSnackBar(
+        'Por favor, selecciona un apiario primero para duplicar.',
+        Colors.red,
+      );
       return;
     }
+
     try {
       final duplicatedQuestion = Pregunta(
         id: 0, // New ID will be assigned by backend
@@ -2113,6 +2150,7 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
         activa: true,
         seleccionada: false,
       );
+
       await EnhancedApiService.crearPregunta(duplicatedQuestion);
       _showSnackBar('Pregunta duplicada correctamente', colorVerde);
       await _loadData();
@@ -2126,7 +2164,9 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Confirmar Eliminación'),
-        content: Text('¿Estás seguro de que deseas eliminar la pregunta "${pregunta.texto}"?'),
+        content: Text(
+          '¿Estás seguro de que deseas eliminar la pregunta "${pregunta.texto}"?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -2189,7 +2229,7 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
     _minController.dispose();
     _maxController.dispose();
     _bankSearchController.dispose();
-    _categoryController.dispose(); // Añadido
+    _categoryController.dispose();
     super.dispose();
   }
 }
