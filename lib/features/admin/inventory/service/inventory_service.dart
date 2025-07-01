@@ -30,7 +30,7 @@ class InventoryService {
       }
     } on SocketException {
       throw Exception('Error de conexión. Verifica tu conexión a internet.');
-    } on HttpException {
+    } on  Exception {
       throw Exception('Error HTTP. El servidor no está disponible.');
     } catch (e) {
       throw Exception('Error inesperado: $e');

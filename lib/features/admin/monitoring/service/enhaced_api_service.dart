@@ -514,6 +514,29 @@ class EnhancedApiService {
       };
     }
   }
+  static Future<int> crearPreguntaDesdeTemplate(
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/questions'),
+            headers: await _headers,
+            body: json.encode(data),
+          )
+          .timeout(_timeout);
+
+      if (response.statusCode == 201) {
+        return json.decode(response.body)['id'];
+      } else {
+        final error = json.decode(response.body);
+        throw Exception('Error: ${error['error'] ?? 'desconocido'}');
+      }
+    } catch (e) {
+      throw Exception('Error de red al crear pregunta: $e');
+    }
+  }
+
 
   static Future<Map<String, dynamic>> loadDefaultQuestions(int apiaryId) async {
     try {
@@ -534,11 +557,29 @@ class EnhancedApiService {
   
   // Agregado para el banco de preguntas
   static Future<List<PreguntaTemplate>> obtenerPlantillasPreguntas() async {
-    // Esto debería idealmente venir de un endpoint, pero lo simulamos
-    // ya que el backend carga desde un JSON local.
-    // Para una implementación real, el backend debería exponer este JSON.
-    // Aquí simulamos la respuesta que el frontend esperaría.
-    final String response = '''{
+    try {
+      final response = await http
+          .get(Uri.parse('$_baseUrl/questions/bank'), headers: await _headers)
+          .timeout(_timeout);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => PreguntaTemplate.fromJson(json)).toList();
+      } else {
+        throw Exception(
+          'Error al obtener el banco de preguntas: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      // Fallback a la data local si la API falla
+      print('Error de red, usando banco de preguntas local: $e');
+      return _fallbackQuestionBank();
+    }
+  }
+
+  static List<PreguntaTemplate> _fallbackQuestionBank() {
+    final String localData = '''
+    {
       "preguntas": [
         {
           "id": "estado_general",
@@ -622,8 +663,9 @@ class EnhancedApiService {
           "opciones": ["Sí", "No"]
         }
       ]
-    }''';
-    final data = json.decode(response);
+    }
+    ''';
+    final data = json.decode(localData);
     final List<dynamic> preguntasJson = data['preguntas'];
     return preguntasJson.map((json) => PreguntaTemplate.fromJson(json)).toList();
   }

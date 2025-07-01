@@ -73,14 +73,24 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
   }
 
   Future<void> _loadQuestionBank() async {
+    if (!mounted) return;
     setState(() => isBankLoading = true);
     try {
       final templates = await EnhancedApiService.obtenerPlantillasPreguntas();
-      setState(() => questionBankTemplates = templates);
+      if (mounted) {
+        setState(() => questionBankTemplates = templates);
+      }
     } catch (e) {
-      _showSnackBar('Error al cargar banco de preguntas: $e', Colors.red);
+      if (mounted) {
+        _showSnackBar(
+          'Error al cargar banco de preguntas: ${e.toString()}',
+          Colors.red,
+        );
+      }
     } finally {
-      setState(() => isBankLoading = false);
+      if (mounted) {
+        setState(() => isBankLoading = false);
+      }
     }
   }
 
@@ -224,7 +234,12 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
     return Scaffold(
       backgroundColor: colorAmbarClaro,
       appBar: AppBar(
-        title: Text('Gestión de Preguntas'),
+        backgroundColor: colorAmarillo,
+        title: Text('Gestión de Preguntas', 
+         style: GoogleFonts.poppins( // Fuente Poppins
+            fontWeight: FontWeight.w600, // Grosor de la fuente
+            color: Colors.white // Color negro para contraste
+          ),),
         actions: [IconButton(icon: Icon(Icons.sync), onPressed: _syncData)],
       ),
       body: isLoading
@@ -259,6 +274,39 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
           : null,
     );
   }
+
+ Future<void> _agregarDesdePlantilla(
+    PreguntaTemplate template,
+    int apiaryId,
+  ) async {
+    final preguntaData = {
+      "apiary_id": apiaryId,
+      "external_id": template.id,
+      "question_text": template.texto, // ← antes: template.pregunta
+      "question_type": template.tipoRespuesta, // ← antes: template.tipo
+      "category": template.categoria,
+      "is_required": template.obligatoria,
+      "display_order": preguntas.length + 1,
+      "min_value": template.min,
+      "max_value": template.max,
+      "options": template.opciones ?? [],
+      "is_active": true,
+    };
+
+    try {
+      final id = await EnhancedApiService.crearPreguntaDesdeTemplate(
+        preguntaData,
+      );
+      print('✅ Pregunta insertada con ID: $id');
+      _showSnackBar("Pregunta agregada", Colors.green);
+      await _loadData(); // refresca lista
+    } catch (e) {
+      print('❌ Error al crear pregunta: $e');
+      _showSnackBar("Error al agregar pregunta: $e", Colors.red);
+    }
+  }
+
+
 
   Widget _buildBody(bool isTablet) {
     return Column(
@@ -1320,29 +1368,40 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
     }
   }
 
-  void _addQuestionFromTemplate(PreguntaTemplate template) {
-    Navigator.pop(context);
-    _preguntaController.text = template.texto;
-    _categoryController.text = template.categoria;
-    tipoRespuestaSeleccionado = template.tipoRespuesta;
-    obligatoriaSeleccionada = template.obligatoria;
-    if (template.opciones != null) {
-      opcionesTemporales = template.opciones!
-          .asMap()
-          .entries
-          .map((entry) => Opcion(valor: entry.value, orden: entry.key + 1))
-          .toList();
-    } else {
-      opcionesTemporales.clear();
+  void _addQuestionFromTemplate(PreguntaTemplate template) async {
+    Navigator.pop(context); // cerrar diálogo
+
+    if (selectedApiarioId == null) {
+      _showSnackBar("Selecciona un apiario primero", Colors.red);
+      return;
     }
-    if (template.min != null) {
-      _minController.text = template.min.toString();
+
+    try {
+      final data = {
+        "apiary_id": selectedApiarioId,
+        "question_text": template.texto,
+        "question_type": template.tipoRespuesta,
+        "is_required": template.obligatoria,
+        "display_order": preguntas.length + 1,
+        "options": template.opciones ?? [],
+        "min_value": template.min,
+        "max_value": template.max,
+        "depends_on": null,
+        "is_active": true,
+      };
+
+      final responseId = await EnhancedApiService.crearPreguntaDesdeTemplate(
+        data,
+      );
+      _showSnackBar("Pregunta agregada correctamente", colorVerde);
+      await _loadData();
+    } catch (e) {
+      _showSnackBar("Error al agregar pregunta: $e", Colors.red);
     }
-    if (template.max != null) {
-      _maxController.text = template.max.toString();
-    }
-    _showPreguntaDialog();
   }
+  
+
+
 
   void _showPreguntaDialog({Pregunta? pregunta}) {
     final isEditing = pregunta != null;
