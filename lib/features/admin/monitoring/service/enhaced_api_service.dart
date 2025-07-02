@@ -11,7 +11,9 @@ class EnhancedApiService {
   static Future<Map<String, String>> get _headers async {
     final token = await AuthStorage.getToken();
     if (token == null || token.isEmpty) {
-      throw Exception('No se encontró el token de autenticación. Por favor, inicia sesión de nuevo.');
+      throw Exception(
+        'No se encontró el token de autenticación. Por favor, inicia sesión de nuevo.',
+      );
     }
     return {
       'Content-Type': 'application/json',
@@ -295,7 +297,9 @@ class EnhancedApiService {
         final List<dynamic> data = json.decode(response.body);
         return data.map((json) => Pregunta.fromJson(json)).toList();
       } else {
-        throw Exception('Error al obtener preguntas: ${response.statusCode} - ${response.body}');
+        throw Exception(
+          'Error al obtener preguntas: ${response.statusCode} - ${response.body}',
+        );
       }
     } catch (e) {
       rethrow;
@@ -318,10 +322,34 @@ class EnhancedApiService {
       } else {
         final errorBody = json.decode(response.body);
         throw Exception(
-            'Error al crear pregunta: ${response.statusCode} - ${errorBody['error'] ?? 'Error desconocido'}');
+          'Error al crear pregunta: ${response.statusCode} - ${errorBody['error'] ?? 'Error desconocido'}',
+        );
       }
     } catch (e) {
       throw Exception('Error de conexión: $e');
+    }
+  }
+
+  static Future<int> crearPreguntaDesdeTemplate(
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/questions'),
+            headers: await _headers,
+            body: json.encode(data),
+          )
+          .timeout(_timeout);
+
+      if (response.statusCode == 201) {
+        return json.decode(response.body)['id'];
+      } else {
+        final error = json.decode(response.body);
+        throw Exception('Error: ${error['error'] ?? 'desconocido'}');
+      }
+    } catch (e) {
+      throw Exception('Error de red al crear pregunta: $e');
     }
   }
 
@@ -384,80 +412,27 @@ class EnhancedApiService {
     }
   }
 
-  // ==================== NOTIFICACIONES REINA ====================
-  static Future<List<NotificacionReina>> obtenerNotificacionesReina({
-    int? apiarioId,
-    bool soloNoLeidas = false,
-    int limit = 50,
-    int offset = 0,
-  }) async {
-    try {
-      String url = '$_baseUrl/queen-notifications';
-      List<String> params = [];
-
-      if (apiarioId != null) params.add('apiario_id=$apiarioId');
-      if (soloNoLeidas) params.add('unread_only=true');
-      params.add('limit=$limit');
-      params.add('offset=$offset');
-
-      if (params.isNotEmpty) {
-        url += '?${params.join('&')}';
-      }
-
-      final response = await http
-          .get(Uri.parse(url), headers: await _headers)
-          .timeout(_timeout);
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        return data.map((json) => NotificacionReina.fromJson(json)).toList();
-      } else {
-        return [];
-      }
-    } catch (e) {
-      return [];
-    }
-  }
-
-  static Future<int> crearNotificacionReina(
-    NotificacionReina notificacion,
-  ) async {
+  static Future<Map<String, dynamic>> loadDefaultQuestions(int apiaryId) async {
     try {
       final response = await http
           .post(
-            Uri.parse('$_baseUrl/queen-notifications'),
+            Uri.parse('$_baseUrl/questions/load_defaults/$apiaryId'),
             headers: await _headers,
-            body: json.encode(notificacion.toJson()),
           )
           .timeout(_timeout);
 
-      if (response.statusCode == 201) {
-        final result = json.decode(response.body);
-        return result['id'] ?? -1;
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
       } else {
-        throw Exception('Error al crear notificación: ${response.statusCode}');
+        throw Exception(
+          'Error al cargar preguntas por defecto: ${response.statusCode}',
+        );
       }
     } catch (e) {
-      throw Exception('Error de conexión: $e');
+      throw Exception('Error de conexión al cargar preguntas por defecto: $e');
     }
   }
 
-  static Future<void> marcarNotificacionComoLeida(int notificacionId) async {
-    try {
-      final response = await http
-          .put(
-            Uri.parse('$_baseUrl/queen-notifications/$notificacionId/read'),
-            headers: await _headers,
-          )
-          .timeout(_timeout);
-
-      if (response.statusCode != 200) {
-        throw Exception('Error al marcar notificación: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Error de conexión: $e');
-    }
-  }
 
   // ==================== UTILIDADES ====================
   static Future<bool> verificarConexion() async {
@@ -514,48 +489,8 @@ class EnhancedApiService {
       };
     }
   }
-  static Future<int> crearPreguntaDesdeTemplate(
-    Map<String, dynamic> data,
-  ) async {
-    try {
-      final response = await http
-          .post(
-            Uri.parse('$_baseUrl/questions'),
-            headers: await _headers,
-            body: json.encode(data),
-          )
-          .timeout(_timeout);
 
-      if (response.statusCode == 201) {
-        return json.decode(response.body)['id'];
-      } else {
-        final error = json.decode(response.body);
-        throw Exception('Error: ${error['error'] ?? 'desconocido'}');
-      }
-    } catch (e) {
-      throw Exception('Error de red al crear pregunta: $e');
-    }
-  }
-
-
-  static Future<Map<String, dynamic>> loadDefaultQuestions(int apiaryId) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl/questions/load_defaults/$apiaryId'),
-        headers: await _headers,
-      ).timeout(_timeout);
-
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      } else {
-        throw Exception('Error al cargar preguntas por defecto: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Error de conexión al cargar preguntas por defecto: $e');
-    }
-  }
-  
-  // Agregado para el banco de preguntas
+  // ==================== BANCO DE PREGUNTAS ====================
   static Future<List<PreguntaTemplate>> obtenerPlantillasPreguntas() async {
     try {
       final response = await http
@@ -567,11 +502,10 @@ class EnhancedApiService {
         return data.map((json) => PreguntaTemplate.fromJson(json)).toList();
       } else {
         throw Exception(
-          'Error al obtener el banco de preguntas: ${response.statusCode}',
+          'Error al obtener banco de preguntas: ${response.statusCode}',
         );
       }
     } catch (e) {
-      // Fallback a la data local si la API falla
       print('Error de red, usando banco de preguntas local: $e');
       return _fallbackQuestionBank();
     }
@@ -667,6 +601,8 @@ class EnhancedApiService {
     ''';
     final data = json.decode(localData);
     final List<dynamic> preguntasJson = data['preguntas'];
-    return preguntasJson.map((json) => PreguntaTemplate.fromJson(json)).toList();
+    return preguntasJson
+        .map((json) => PreguntaTemplate.fromJson(json))
+        .toList();
   }
 }

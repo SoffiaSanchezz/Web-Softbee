@@ -9,16 +9,20 @@ class ColmenasManagementScreen extends StatefulWidget {
   const ColmenasManagementScreen({Key? key}) : super(key: key);
 
   @override
-  _ColmenasManagementScreenState createState() => _ColmenasManagementScreenState();
+  _ColmenasManagementScreenState createState() =>
+      _ColmenasManagementScreenState();
 }
 
 class _ColmenasManagementScreenState extends State<ColmenasManagementScreen>
     with SingleTickerProviderStateMixin {
   // Controladores
-  final TextEditingController _numeroColmenaController = TextEditingController();
-  final TextEditingController _cuadrosAlimentoController = TextEditingController();
+  final TextEditingController _numeroColmenaController =
+      TextEditingController();
+  final TextEditingController _cuadrosAlimentoController =
+      TextEditingController();
   final TextEditingController _cuadrosCriaController = TextEditingController();
-  final TextEditingController _observacionesController = TextEditingController();
+  final TextEditingController _observacionesController =
+      TextEditingController();
   final TextEditingController _searchController = TextEditingController();
 
   // Estado
@@ -64,7 +68,9 @@ class _ColmenasManagementScreenState extends State<ColmenasManagementScreen>
       // Cargar colmenas de todos los apiarios
       List<Colmena> todasColmenas = [];
       for (var apiario in apiarios) {
-        final colmenasApiario = await EnhancedApiService.obtenerColmenas(apiario.id);
+        final colmenasApiario = await EnhancedApiService.obtenerColmenas(
+          apiario.id,
+        );
         todasColmenas.addAll(colmenasApiario);
       }
       colmenas = todasColmenas;
@@ -140,7 +146,11 @@ class _ColmenasManagementScreenState extends State<ColmenasManagementScreen>
 
       return colmena.numeroColmena.toString().contains(query) ||
           apiarioNombre.contains(query) ||
-          (colmena.metadatos?['observaciones']?.toString().toLowerCase().contains(query) ?? false);
+          (colmena.metadatos?['observaciones']
+                  ?.toString()
+                  .toLowerCase()
+                  .contains(query) ??
+              false);
     }).toList();
   }
 
@@ -162,21 +172,22 @@ class _ColmenasManagementScreenState extends State<ColmenasManagementScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Gestión de Colmenas',
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        )
-        .animate()
-        .fadeIn(duration: 500.ms)
-        .slideX(
-          begin: -0.2,
-          end: 0,
-          duration: 500.ms,
-          curve: Curves.easeOutQuad,
-        ),
+        title:
+            Text(
+                  'Gestión de Colmenas',
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                )
+                .animate()
+                .fadeIn(duration: 500.ms)
+                .slideX(
+                  begin: -0.2,
+                  end: 0,
+                  duration: 500.ms,
+                  curve: Curves.easeOutQuad,
+                ),
         backgroundColor: Colors.amber[600],
         foregroundColor: Colors.white,
         elevation: 0,
@@ -210,12 +221,12 @@ class _ColmenasManagementScreenState extends State<ColmenasManagementScreen>
             ),
           ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
           IconButton(
-            icon: const Icon(Icons.add_circle_outline),
-            onPressed: () => _showColmenaDialog(),
-          )
-          .animate()
-          .fadeIn(delay: 400.ms, duration: 400.ms)
-          .scale(begin: const Offset(0.5, 0.5), end: const Offset(1, 1)),
+                icon: const Icon(Icons.add_circle_outline),
+                onPressed: () => _showColmenaDialog(),
+              )
+              .animate()
+              .fadeIn(delay: 400.ms, duration: 400.ms)
+              .scale(begin: const Offset(0.5, 0.5), end: const Offset(1, 1)),
         ],
       ),
       backgroundColor: const Color(0xFFF9F8F6),
@@ -225,7 +236,9 @@ class _ColmenasManagementScreenState extends State<ColmenasManagementScreen>
               child: Center(
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
-                    maxWidth: isDesktop ? 1200 : (isTablet ? 900 : double.infinity),
+                    maxWidth: isDesktop
+                        ? 1200
+                        : (isTablet ? 900 : double.infinity),
                   ),
                   child: SingleChildScrollView(
                     padding: EdgeInsets.symmetric(
@@ -316,15 +329,17 @@ class _ColmenasManagementScreenState extends State<ColmenasManagementScreen>
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(isDesktop ? 16 : 12),
                 ),
-                child: Icon(
-                  Icons.hive,
-                  size: isDesktop ? 40 : 32,
-                  color: Colors.amber[700],
-                )
-                .animate(
-                  onPlay: (controller) => controller.repeat(reverse: true),
-                )
-                .rotate(begin: -0.05, end: 0.05, duration: 2000.ms),
+                child:
+                    Icon(
+                          Icons.hive,
+                          size: isDesktop ? 40 : 32,
+                          color: Colors.amber[700],
+                        )
+                        .animate(
+                          onPlay: (controller) =>
+                              controller.repeat(reverse: true),
+                        )
+                        .rotate(begin: -0.05, end: 0.05, duration: 2000.ms),
               ),
               SizedBox(width: isDesktop ? 24 : 16),
               Flexible(
@@ -618,7 +633,8 @@ class _ColmenasManagementScreenState extends State<ColmenasManagementScreen>
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         itemCount: filteredColmenas.length,
-        separatorBuilder: (context, index) => SizedBox(height: isTablet ? 12 : 8),
+        separatorBuilder: (context, index) =>
+            SizedBox(height: isTablet ? 12 : 8),
         itemBuilder: (context, index) {
           return _buildColmenaCard(
             filteredColmenas[index],
@@ -707,297 +723,297 @@ class _ColmenasManagementScreenState extends State<ColmenasManagementScreen>
     final cuadrosCria = colmena.metadatos?['cuadros_cria'] ?? 0;
 
     return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(isDesktop ? 24 : 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(isDesktop ? 20 : 16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
-        border: Border.all(color: Colors.amber[200]!, width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header de la colmena
-          Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(isDesktop ? 12 : 8),
-                decoration: BoxDecoration(
-                  color: Colors.amber[100],
-                  borderRadius: BorderRadius.circular(isDesktop ? 12 : 8),
-                ),
-                child: Icon(
-                  Icons.hive,
-                  color: Colors.amber[700],
-                  size: isDesktop ? 24 : 20,
-                ),
+          width: double.infinity,
+          padding: EdgeInsets.all(isDesktop ? 24 : 20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(isDesktop ? 20 : 16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                blurRadius: 15,
+                offset: const Offset(0, 8),
               ),
-              SizedBox(width: isDesktop ? 16 : 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            ],
+            border: Border.all(color: Colors.amber[200]!, width: 1),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header de la colmena
+              Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(isDesktop ? 12 : 8),
+                    decoration: BoxDecoration(
+                      color: Colors.amber[100],
+                      borderRadius: BorderRadius.circular(isDesktop ? 12 : 8),
+                    ),
+                    child: Icon(
+                      Icons.hive,
+                      color: Colors.amber[700],
+                      size: isDesktop ? 24 : 20,
+                    ),
+                  ),
+                  SizedBox(width: isDesktop ? 16 : 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Colmena #${colmena.numeroColmena}',
+                          style: GoogleFonts.poppins(
+                            fontSize: isDesktop ? 18 : 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        Text(
+                          apiario.nombre,
+                          style: GoogleFonts.poppins(
+                            fontSize: isDesktop ? 14 : 12,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  PopupMenuButton<String>(
+                    onSelected: (value) {
+                      switch (value) {
+                        case 'edit':
+                          _showColmenaDialog(colmena: colmena);
+                          break;
+                        case 'delete':
+                          _confirmDelete(colmena);
+                          break;
+                        case 'details':
+                          _showColmenaDetails(colmena);
+                          break;
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.edit,
+                              color: Colors.amber[600],
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Text('Editar', style: GoogleFonts.poppins()),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'details',
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.visibility,
+                              color: Colors.blue,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Text('Ver Detalles', style: GoogleFonts.poppins()),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.delete,
+                              color: Colors.red,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Text('Eliminar', style: GoogleFonts.poppins()),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+
+              Divider(height: isDesktop ? 32 : 24),
+
+              // Información de la colmena
+              _buildInfoRow(
+                Icons.trending_up_outlined,
+                'Nivel de Actividad:',
+                nivelActividad,
+                iconColor: _getActivityColor(nivelActividad),
+                isDesktop: isDesktop,
+              ),
+
+              Divider(height: isDesktop ? 24 : 16),
+
+              _buildInfoRow(
+                Icons.favorite_outline,
+                'Estado de Salud:',
+                estadoSalud,
+                iconColor: _getHealthColor(estadoSalud),
+                isHighlight: estadoSalud != 'Ninguno',
+                isDesktop: isDesktop,
+              ),
+
+              Divider(height: isDesktop ? 24 : 16),
+
+              _buildInfoRow(
+                Icons.home_work_outlined,
+                'Cámara de Producción:',
+                camaraProduccion,
+                iconColor: camaraProduccion == 'Si'
+                    ? Colors.green[700]!
+                    : Colors.grey[600]!,
+                isDesktop: isDesktop,
+              ),
+
+              if (isDesktop) ...[
+                Divider(height: 24),
+
+                // Indicadores de cuadros
+                Row(
                   children: [
-                    Text(
-                      'Colmena #${colmena.numeroColmena}',
-                      style: GoogleFonts.poppins(
-                        fontSize: isDesktop ? 18 : 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Text(
+                            'Cuadros de Alimento',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              color: Colors.black54,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          CircularPercentIndicator(
+                            radius: 30,
+                            lineWidth: 6,
+                            percent: (cuadrosAlimento / 10).clamp(0.0, 1.0),
+                            center: Text(
+                              cuadrosAlimento.toString(),
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue[700],
+                              ),
+                            ),
+                            progressColor: Colors.blue[600],
+                            backgroundColor: Colors.grey[200]!,
+                            animation: true,
+                            animationDuration: 1000,
+                          ),
+                        ],
                       ),
                     ),
-                    Text(
-                      apiario.nombre,
-                      style: GoogleFonts.poppins(
-                        fontSize: isDesktop ? 14 : 12,
-                        color: Colors.black54,
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Text(
+                            'Cuadros de Cría',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              color: Colors.black54,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          CircularPercentIndicator(
+                            radius: 30,
+                            lineWidth: 6,
+                            percent: (cuadrosCria / 10).clamp(0.0, 1.0),
+                            center: Text(
+                              cuadrosCria.toString(),
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.orange[700],
+                              ),
+                            ),
+                            progressColor: Colors.orange[600],
+                            backgroundColor: Colors.grey[200]!,
+                            animation: true,
+                            animationDuration: 1000,
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),
-              PopupMenuButton<String>(
-                onSelected: (value) {
-                  switch (value) {
-                    case 'edit':
-                      _showColmenaDialog(colmena: colmena);
-                      break;
-                    case 'delete':
-                      _confirmDelete(colmena);
-                      break;
-                    case 'details':
-                      _showColmenaDetails(colmena);
-                      break;
-                  }
-                },
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'edit',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.edit,
-                          color: Colors.amber[600],
-                          size: 18,
+              ],
+
+              SizedBox(height: isDesktop ? 24 : 16),
+
+              // Botones de acción
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _showColmenaDetails(colmena),
+                      icon: const Icon(Icons.visibility, size: 16),
+                      label: Text(
+                        'Ver Detalles',
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w600,
+                          fontSize: isDesktop ? 14 : 12,
                         ),
-                        const SizedBox(width: 8),
-                        Text('Editar', style: GoogleFonts.poppins()),
-                      ],
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue[100],
+                        foregroundColor: Colors.blue[700],
+                        padding: EdgeInsets.symmetric(
+                          vertical: isDesktop ? 12 : 8,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        elevation: 0,
+                      ),
                     ),
                   ),
-                  PopupMenuItem(
-                    value: 'details',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.visibility,
-                          color: Colors.blue,
-                          size: 18,
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _showColmenaDialog(colmena: colmena),
+                      icon: const Icon(Icons.edit, size: 16),
+                      label: Text(
+                        'Editar',
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w600,
+                          fontSize: isDesktop ? 14 : 12,
                         ),
-                        const SizedBox(width: 8),
-                        Text('Ver Detalles', style: GoogleFonts.poppins()),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'delete',
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.delete,
-                          color: Colors.red,
-                          size: 18,
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.amber[100],
+                        foregroundColor: Colors.amber[700],
+                        padding: EdgeInsets.symmetric(
+                          vertical: isDesktop ? 12 : 8,
                         ),
-                        const SizedBox(width: 8),
-                        Text('Eliminar', style: GoogleFonts.poppins()),
-                      ],
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        elevation: 0,
+                      ),
                     ),
                   ),
                 ],
               ),
             ],
           ),
-
-          Divider(height: isDesktop ? 32 : 24),
-
-          // Información de la colmena
-          _buildInfoRow(
-            Icons.trending_up_outlined,
-            'Nivel de Actividad:',
-            nivelActividad,
-            iconColor: _getActivityColor(nivelActividad),
-            isDesktop: isDesktop,
-          ),
-
-          Divider(height: isDesktop ? 24 : 16),
-
-          _buildInfoRow(
-            Icons.favorite_outline,
-            'Estado de Salud:',
-            estadoSalud,
-            iconColor: _getHealthColor(estadoSalud),
-            isHighlight: estadoSalud != 'Ninguno',
-            isDesktop: isDesktop,
-          ),
-
-          Divider(height: isDesktop ? 24 : 16),
-
-          _buildInfoRow(
-            Icons.home_work_outlined,
-            'Cámara de Producción:',
-            camaraProduccion,
-            iconColor: camaraProduccion == 'Si'
-                ? Colors.green[700]!
-                : Colors.grey[600]!,
-            isDesktop: isDesktop,
-          ),
-
-          if (isDesktop) ...[
-            Divider(height: 24),
-
-            // Indicadores de cuadros
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    children: [
-                      Text(
-                        'Cuadros de Alimento',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          color: Colors.black54,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      CircularPercentIndicator(
-                        radius: 30,
-                        lineWidth: 6,
-                        percent: (cuadrosAlimento / 10).clamp(0.0, 1.0),
-                        center: Text(
-                          cuadrosAlimento.toString(),
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue[700],
-                          ),
-                        ),
-                        progressColor: Colors.blue[600],
-                        backgroundColor: Colors.grey[200]!,
-                        animation: true,
-                        animationDuration: 1000,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    children: [
-                      Text(
-                        'Cuadros de Cría',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          color: Colors.black54,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      CircularPercentIndicator(
-                        radius: 30,
-                        lineWidth: 6,
-                        percent: (cuadrosCria / 10).clamp(0.0, 1.0),
-                        center: Text(
-                          cuadrosCria.toString(),
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.orange[700],
-                          ),
-                        ),
-                        progressColor: Colors.orange[600],
-                        backgroundColor: Colors.grey[200]!,
-                        animation: true,
-                        animationDuration: 1000,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-
-          SizedBox(height: isDesktop ? 24 : 16),
-
-          // Botones de acción
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () => _showColmenaDetails(colmena),
-                  icon: const Icon(Icons.visibility, size: 16),
-                  label: Text(
-                    'Ver Detalles',
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w600,
-                      fontSize: isDesktop ? 14 : 12,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue[100],
-                    foregroundColor: Colors.blue[700],
-                    padding: EdgeInsets.symmetric(
-                      vertical: isDesktop ? 12 : 8,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    elevation: 0,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () => _showColmenaDialog(colmena: colmena),
-                  icon: const Icon(Icons.edit, size: 16),
-                  label: Text(
-                    'Editar',
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w600,
-                      fontSize: isDesktop ? 14 : 12,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.amber[100],
-                    foregroundColor: Colors.amber[700],
-                    padding: EdgeInsets.symmetric(
-                      vertical: isDesktop ? 12 : 8,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    elevation: 0,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    )
-    .animate()
-    .fadeIn(
-      delay: Duration(milliseconds: 100 * index),
-      duration: 600.ms,
-    )
-    .slideY(begin: 0.2, end: 0);
+        )
+        .animate()
+        .fadeIn(
+          delay: Duration(milliseconds: 100 * index),
+          duration: 600.ms,
+        )
+        .slideY(begin: 0.2, end: 0);
   }
 
   Widget _buildInfoRow(
@@ -1338,19 +1354,20 @@ class _ColmenasManagementScreenState extends State<ColmenasManagementScreen>
                     ),
                     prefixIcon: Icon(Icons.home, color: Colors.amber[600]),
                   ),
-                  items: [
-                    'Cámara de cría',
-                    'Cámara de cría y producción',
-                    'Cámara de cría y doble alza de producción',
-                  ].map((estado) {
-                    return DropdownMenuItem<String>(
-                      value: estado,
-                      child: Text(
-                        estado,
-                        style: GoogleFonts.poppins(fontSize: 12),
-                      ),
-                    );
-                  }).toList(),
+                  items:
+                      [
+                        'Cámara de cría',
+                        'Cámara de cría y producción',
+                        'Cámara de cría y doble alza de producción',
+                      ].map((estado) {
+                        return DropdownMenuItem<String>(
+                          value: estado,
+                          child: Text(
+                            estado,
+                            style: GoogleFonts.poppins(fontSize: 12),
+                          ),
+                        );
+                      }).toList(),
                   onChanged: (value) {
                     setState(() {
                       estadoColmena = value;
@@ -1379,21 +1396,22 @@ class _ColmenasManagementScreenState extends State<ColmenasManagementScreen>
                       color: Colors.amber[600],
                     ),
                   ),
-                  items: [
-                    'Ninguno',
-                    'Presencia barroa',
-                    'Presencia de polilla',
-                    'Presencia de curruncho',
-                    'Mortalidad- malformación en nodrizas',
-                  ].map((estado) {
-                    return DropdownMenuItem<String>(
-                      value: estado,
-                      child: Text(
-                        estado,
-                        style: GoogleFonts.poppins(fontSize: 12),
-                      ),
-                    );
-                  }).toList(),
+                  items:
+                      [
+                        'Ninguno',
+                        'Presencia barroa',
+                        'Presencia de polilla',
+                        'Presencia de curruncho',
+                        'Mortalidad- malformación en nodrizas',
+                      ].map((estado) {
+                        return DropdownMenuItem<String>(
+                          value: estado,
+                          child: Text(
+                            estado,
+                            style: GoogleFonts.poppins(fontSize: 12),
+                          ),
+                        );
+                      }).toList(),
                   onChanged: (value) {
                     setState(() {
                       estadoSalud = value;
@@ -1533,6 +1551,7 @@ class _ColmenasManagementScreenState extends State<ColmenasManagementScreen>
   }
 
   // Guardar colmena
+
   Future<void> _saveColmena(Colmena? existingColmena) async {
     if (_numeroColmenaController.text.trim().isEmpty ||
         selectedApiarioId == null) {
@@ -1545,7 +1564,6 @@ class _ColmenasManagementScreenState extends State<ColmenasManagementScreen>
 
       final colmenaData = {
         'hive_number': int.parse(_numeroColmenaController.text.trim()),
-        'apiary_id': selectedApiarioId,
         'activity_level': nivelActividad,
         'bee_population': poblacionAbejas,
         'food_frames': _cuadrosAlimentoController.text.isNotEmpty
@@ -1568,8 +1586,11 @@ class _ColmenasManagementScreenState extends State<ColmenasManagementScreen>
         );
         _showSnackBar('Colmena actualizada correctamente', Colors.green);
       } else {
-        // Crear nueva colmena
-        await EnhancedApiService.crearColmena(colmenaData);
+        // Crear nueva colmena - apiary_id se pasa en la URL, no en el body
+        await EnhancedApiService.crearColmena({
+          ...colmenaData,
+          'apiary_id': selectedApiarioId, // Solo para validación
+        });
         _showSnackBar('Colmena creada correctamente', Colors.green);
       }
 

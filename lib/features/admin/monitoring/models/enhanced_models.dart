@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:uuid/uuid.dart';
 
 class Opcion {
@@ -44,7 +42,7 @@ class Pregunta {
   int orden;
   bool activa;
   int? apiarioId;
-  String? categoria; // Añadido
+  String? categoria;
   DateTime? fechaCreacion;
   DateTime? fechaActualizacion;
 
@@ -65,21 +63,22 @@ class Pregunta {
     this.orden = 0,
     this.activa = true,
     this.apiarioId,
-    this.categoria, // Añadido
+    this.categoria,
     this.fechaCreacion,
     this.fechaActualizacion,
-  }) : _flutterKey = (id == 0 || id == null) ? Uuid().v4() : id.toString();
+  }) : _flutterKey = (id == 0) ? const Uuid().v4() : id.toString();
 
   // Getter para la clave que usará ValueKey
   String get flutterKey => _flutterKey;
 
   factory Pregunta.fromJson(Map<String, dynamic> json) {
     return Pregunta(
-      id: json['id'] ?? json['question_id'] ?? 0,
+      id: json['id'] is String
+          ? int.tryParse(json['id']) ?? 0
+          : json['id'] ?? json['question_id'] ?? 0,
       texto: json['pregunta'] ?? json['question_text'] ?? json['texto'] ?? '',
       seleccionada: json['seleccionada'] ?? false,
-      tipoRespuesta:
-          json['tipo'] ??
+      tipoRespuesta: json['tipo'] ??
           json['question_type'] ??
           json['tipoRespuesta'] ??
           'texto',
@@ -97,7 +96,7 @@ class Pregunta {
       orden: json['orden'] ?? json['display_order'] ?? 0,
       activa: json['activa'] ?? json['is_active'] ?? true,
       apiarioId: json['apiario_id'] ?? json['apiary_id'],
-      categoria: json['category'] ?? json['categoria'], // Añadido
+      categoria: json['category'] ?? json['categoria'],
       fechaCreacion: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'])
           : null,
@@ -121,7 +120,7 @@ class Pregunta {
       'display_order': orden,
       'is_active': activa,
       'apiary_id': apiarioId,
-      'category': categoria, // Añadido
+      'category': categoria,
     };
   }
 
@@ -139,7 +138,7 @@ class Pregunta {
     int? orden,
     bool? activa,
     int? apiarioId,
-    String? categoria, // Añadido
+    String? categoria,
   }) {
     return Pregunta(
       id: id ?? this.id,
@@ -156,7 +155,7 @@ class Pregunta {
       orden: orden ?? this.orden,
       activa: activa ?? this.activa,
       apiarioId: apiarioId ?? this.apiarioId,
-      categoria: categoria ?? this.categoria, // Añadido
+      categoria: categoria ?? this.categoria,
       fechaCreacion: fechaCreacion,
       fechaActualizacion: DateTime.now(),
     );
@@ -203,8 +202,8 @@ class Apiario {
           : null,
       preguntas: json['preguntas'] != null
           ? (json['preguntas'] as List)
-                .map((p) => Pregunta.fromJson(p))
-                .toList()
+              .map((p) => Pregunta.fromJson(p))
+              .toList()
           : null,
       metadatos: json['metadatos'] ?? json['metadata'],
     );
@@ -322,9 +321,10 @@ class NotificacionReina {
             json['created_at'] ??
             DateTime.now().toIso8601String(),
       ),
-      fechaVencimiento:
-          json['fecha_vencimiento'] != null || json['expires_at'] != null
-          ? DateTime.tryParse(json['fecha_vencimiento'] ?? json['expires_at'])
+      fechaVencimiento: json['fecha_vencimiento'] != null ||
+              json['expires_at'] != null
+          ? DateTime.tryParse(
+              json['fecha_vencimiento'] ?? json['expires_at'] ?? '')
           : null,
       metadatos: json['metadatos'] ?? json['metadata'],
     );
@@ -430,7 +430,6 @@ class MonitoreoRespuesta {
   }
 }
 
-// Modelo para la plantilla de pregunta del banco
 class PreguntaTemplate {
   final String id;
   final String categoria;
@@ -459,7 +458,9 @@ class PreguntaTemplate {
       texto: json['pregunta'],
       tipoRespuesta: json['tipo'],
       obligatoria: json['obligatoria'],
-      opciones: json['opciones'] != null ? List<String>.from(json['opciones']) : null,
+      opciones: json['opciones'] != null
+          ? List<String>.from(json['opciones'])
+          : null,
       min: json['min'],
       max: json['max'],
     );
