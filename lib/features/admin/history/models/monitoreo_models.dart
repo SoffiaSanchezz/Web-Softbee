@@ -23,19 +23,19 @@ class MonitoreoModel {
 
   factory MonitoreoModel.fromJson(Map<String, dynamic> json) {
     return MonitoreoModel(
-      id: json['id'],
-      idColmena: json['id_colmena'],
-      idApiario: json['id_apiario'],
-      fecha: json['fecha'],
+      id: json['id'] as int? ?? 0,
+      idColmena: json['id_colmena'] as int? ?? 0,
+      idApiario: json['id_apiario'] as int? ?? 0,
+      fecha: json['fecha']?.toString() ?? DateTime.now().toIso8601String(),
       respuestas:
           (json['respuestas'] as List?)
-              ?.map((r) => RespuestaModel.fromJson(r))
+              ?.map((r) => RespuestaModel.fromJson(r as Map<String, dynamic>))
               .toList() ??
           [],
-      datosAdicionales: json['datos_adicionales'],
-      sincronizado: json['sincronizado'] ?? false,
-      apiarioNombre: json['apiario_nombre'],
-      numeroColmena: json['numero_colmena'],
+      datosAdicionales: json['datos_adicionales'] as Map<String, dynamic>?,
+      sincronizado: json['sincronizado'] as bool? ?? false,
+      apiarioNombre: json['apiario_nombre']?.toString(),
+      numeroColmena: json['numero_colmena'] as int?,
     );
   }
 
@@ -108,12 +108,12 @@ class RespuestaModel {
 
   factory RespuestaModel.fromJson(Map<String, dynamic> json) {
     return RespuestaModel(
-      id: json['id'],
-      monitoreoId: json['monitoreo_id'],
-      preguntaId: json['pregunta_id'],
-      preguntaTexto: json['pregunta_texto'],
-      respuesta: json['respuesta'],
-      tipoRespuesta: json['tipo_respuesta'],
+      id: json['id'] as int?,
+      monitoreoId: json['monitoreo_id'] as int?,
+      preguntaId: json['pregunta_id']?.toString() ?? '',
+      preguntaTexto: json['pregunta_texto']?.toString() ?? '',
+      respuesta: json['respuesta']?.toString() ?? '',
+      tipoRespuesta: json['tipo_respuesta']?.toString() ?? '',
     );
   }
 
@@ -158,19 +158,19 @@ class QuestionModel {
 
   factory QuestionModel.fromJson(Map<String, dynamic> json) {
     return QuestionModel(
-      id: json['id'],
-      apiaryId: json['apiary_id'],
-      questionText: json['question_text'],
-      questionType: json['question_type'],
-      isRequired: json['is_required'] ?? false,
-      displayOrder: json['display_order'] ?? 0,
-      minValue: json['min_value'],
-      maxValue: json['max_value'],
+      id: json['id'] as int? ?? 0,
+      apiaryId: json['apiary_id'] as int? ?? 0,
+      questionText: json['question_text']?.toString() ?? '',
+      questionType: json['question_type']?.toString() ?? '',
+      isRequired: json['is_required'] as bool? ?? false,
+      displayOrder: json['display_order'] as int? ?? 0,
+      minValue: json['min_value'] as int?,
+      maxValue: json['max_value'] as int?,
       options: json['options'] != null
-          ? List<String>.from(json['options'])
+          ? List<String>.from(json['options'].map((e) => e.toString()))
           : null,
-      dependsOn: json['depends_on'],
-      isActive: json['is_active'] ?? true,
+      dependsOn: json['depends_on']?.toString(),
+      isActive: json['is_active'] as bool? ?? true,
     );
   }
 }

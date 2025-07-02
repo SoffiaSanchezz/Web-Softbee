@@ -19,13 +19,13 @@ class InventoryItem {
 
   factory InventoryItem.fromJson(Map<String, dynamic> json) {
     return InventoryItem(
-      id: json['id'] ?? 0,
-      itemName: json['name'] ?? '',
-      quantity: json['quantity'] ?? 0,
-      unit: json['unit'] ?? 'unit',
-      apiaryId: json['apiary_id'] ?? 1,
-      createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(json['updated_at'] ?? '') ?? DateTime.now(),
+      id: json['id'] as int? ?? 0,
+      itemName: json['name']?.toString() ?? '',
+      quantity: json['quantity'] as int? ?? 0,
+      unit: json['unit']?.toString() ?? 'unit',
+      apiaryId: json['apiary_id'] as int? ?? 1,
+      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse(json['updated_at']?.toString() ?? '') ?? DateTime.now(),
     );
   }
 
@@ -86,10 +86,10 @@ class InventoryItem {
   // Crear desde Map para compatibilidad con tu código existente
   factory InventoryItem.fromMap(Map<String, dynamic> map) {
     return InventoryItem(
-      id: map['id'] ?? 0,
-      itemName: map['nombre'] ?? '',
+      id: map['id'] as int? ?? 0,
+      itemName: map['nombre']?.toString() ?? '',
       quantity: int.tryParse(map['cantidad']?.toString() ?? '0') ?? 0,
-      unit: map['unidad'] ?? 'unit',
+      unit: map['unidad']?.toString() ?? 'unit',
       apiaryId: 1, // Default apiary ID
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),

@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:uuid/uuid.dart';
 
 class Opcion {
@@ -15,9 +13,9 @@ class Opcion {
 
   factory Opcion.fromJson(Map<String, dynamic> json) {
     return Opcion(
-      valor: json['valor'] ?? json['value'] ?? '',
-      descripcion: json['descripcion'] ?? json['description'],
-      orden: json['orden'] ?? json['order'],
+      valor: json['valor']?.toString() ?? json['value']?.toString() ?? '',
+      descripcion: json['descripcion']?.toString() ?? json['description']?.toString(),
+      orden: json['orden'] as int? ?? json['order'] as int?,
     );
   }
 
@@ -31,7 +29,7 @@ class Opcion {
 }
 
 class Pregunta {
-  String id;
+  int id;
   String texto;
   bool seleccionada;
   List<Opcion>? opciones;
@@ -44,9 +42,12 @@ class Pregunta {
   int orden;
   bool activa;
   int? apiarioId;
-  String? categoria; // Añadido
+  String? categoria;
   DateTime? fechaCreacion;
   DateTime? fechaActualizacion;
+
+  // Clave única para Flutter (para ReorderableListView)
+  final String _flutterKey;
 
   Pregunta({
     required this.id,
@@ -62,43 +63,46 @@ class Pregunta {
     this.orden = 0,
     this.activa = true,
     this.apiarioId,
-    this.categoria, // Añadido
+    this.categoria,
     this.fechaCreacion,
     this.fechaActualizacion,
-  }) : _flutterKey = (id == 0 || id == null) ? Uuid().v4() : id.toString();
+  }) : _flutterKey = (id == 0) ? const Uuid().v4() : id.toString();
 
   // Getter para la clave que usará ValueKey
   String get flutterKey => _flutterKey;
 
   factory Pregunta.fromJson(Map<String, dynamic> json) {
+    final optionsList = json['opciones'] ?? json['options'];
     return Pregunta(
-      id: json['id'] ?? json['question_id'] ?? 0,
-      texto: json['pregunta'] ?? json['question_text'] ?? json['texto'] ?? '',
-      seleccionada: json['seleccionada'] ?? false,
-      tipoRespuesta: json['tipo'] ??
-          json['question_type'] ??
-          json['tipoRespuesta'] ??
+      id: json['id'] is String
+          ? int.tryParse(json['id'].toString()) ?? 0
+          : json['id'] as int? ?? json['question_id'] as int? ?? 0,
+      texto: json['pregunta']?.toString() ?? json['question_text']?.toString() ?? json['texto']?.toString() ?? '',
+      seleccionada: json['seleccionada'] as bool? ?? false,
+      tipoRespuesta: json['tipo']?.toString() ??
+          json['question_type']?.toString() ??
+          json['tipoRespuesta']?.toString() ??
           'texto',
-      obligatoria: json['obligatoria'] ?? json['is_required'] ?? false,
-      opciones: json['opciones'] != null || json['options'] != null
-          ? ((json['opciones'] ?? json['options']) as List?)
-                ?.map(
-                  (o) => o is String ? Opcion(valor: o) : Opcion.fromJson(o),
-                )
-                .toList()
+      obligatoria: json['obligatoria'] as bool? ?? json['is_required'] as bool? ?? false,
+      opciones: optionsList is List
+          ? optionsList.map((o) {
+              if (o is String) return Opcion(valor: o);
+              if (o is Map<String, dynamic>) return Opcion.fromJson(o);
+              return Opcion(valor: o.toString());
+            }).toList()
           : null,
-      min: json['min'] ?? json['min_value'],
-      max: json['max'] ?? json['max_value'],
-      dependeDe: json['depende_de'] ?? json['depends_on'] ?? json['dependeDe'],
-      orden: json['orden'] ?? json['display_order'] ?? 0,
-      activa: json['activa'] ?? json['is_active'] ?? true,
-      apiarioId: json['apiario_id'] ?? json['apiary_id'],
-      categoria: json['category'] ?? json['categoria'], // Añadido
+      min: json['min'] as int? ?? json['min_value'] as int?,
+      max: json['max'] as int? ?? json['max_value'] as int?,
+      dependeDe: json['depende_de']?.toString() ?? json['depends_on']?.toString() ?? json['dependeDe']?.toString(),
+      orden: json['orden'] as int? ?? json['display_order'] as int? ?? 0,
+      activa: json['activa'] as bool? ?? json['is_active'] as bool? ?? true,
+      apiarioId: json['apiario_id'] as int? ?? json['apiary_id'] as int?,
+      categoria: json['category']?.toString() ?? json['categoria']?.toString(),
       fechaCreacion: json['created_at'] != null
-          ? DateTime.tryParse(json['created_at'])
+          ? DateTime.tryParse(json['created_at'].toString())
           : null,
       fechaActualizacion: json['updated_at'] != null
-          ? DateTime.tryParse(json['updated_at'])
+          ? DateTime.tryParse(json['updated_at'].toString())
           : null,
     );
   }
@@ -109,7 +113,7 @@ class Pregunta {
       'question_text': texto,
       'question_type': tipoRespuesta,
       'is_required': obligatoria,
-      'options': opciones?.map((o) => o.toJson()).toList(),
+      'options': opciones?.map((o) => o.valor).toList(),
       'min_value': min,
       'max_value': max,
       'depends_on': dependeDe,
@@ -117,12 +121,12 @@ class Pregunta {
       'display_order': orden,
       'is_active': activa,
       'apiary_id': apiarioId,
-      'category': categoria, // Añadido
+      'category': categoria,
     };
   }
 
   Pregunta copyWith({
-    String? id,
+    int? id,
     String? texto,
     bool? seleccionada,
     List<Opcion>? opciones,
@@ -135,7 +139,7 @@ class Pregunta {
     int? orden,
     bool? activa,
     int? apiarioId,
-    String? categoria, // Añadido
+    String? categoria,
   }) {
     return Pregunta(
       id: id ?? this.id,
@@ -152,7 +156,7 @@ class Pregunta {
       orden: orden ?? this.orden,
       activa: activa ?? this.activa,
       apiarioId: apiarioId ?? this.apiarioId,
-      categoria: categoria ?? this.categoria, // Añadido
+      categoria: categoria ?? this.categoria,
       fechaCreacion: fechaCreacion,
       fechaActualizacion: DateTime.now(),
     );
@@ -185,14 +189,14 @@ class Apiario {
   factory Apiario.fromJson(Map<String, dynamic> json) {
     return Apiario(
       id: json['id'] ?? 0,
-      nombre: json['nombre'] ?? json['name'] ?? '',
-      ubicacion: json['ubicacion'] ?? json['location'] ?? '',
-      userId: json['user_id'],
+      nombre: json['nombre']?.toString() ?? json['name']?.toString() ?? '',
+      ubicacion: json['ubicacion']?.toString() ?? json['location']?.toString() ?? '',
+      userId: json['user_id'] as int?,
       fechaCreacion: json['created_at'] != null
-          ? DateTime.tryParse(json['created_at'])
+          ? DateTime.tryParse(json['created_at'].toString())
           : null,
       fechaActualizacion: json['updated_at'] != null
-          ? DateTime.tryParse(json['updated_at'])
+          ? DateTime.tryParse(json['updated_at'].toString())
           : null,
       colmenas: json['colmenas'] != null
           ? (json['colmenas'] as List).map((c) => Colmena.fromJson(c)).toList()
@@ -202,7 +206,7 @@ class Apiario {
               .map((p) => Pregunta.fromJson(p))
               .toList()
           : null,
-      metadatos: json['metadatos'] ?? json['metadata'],
+      metadatos: json['metadatos'] as Map<String, dynamic>? ?? json['metadata'] as Map<String, dynamic>?,
     );
   }
 
@@ -256,12 +260,12 @@ class Colmena {
 
   factory Colmena.fromJson(Map<String, dynamic> json) {
     return Colmena(
-      id: json['id'] ?? 0,
-      numeroColmena: json['numero_colmena'] ?? json['hive_number'] ?? 0,
-      idApiario: json['id_apiario'] ?? json['apiary_id'] ?? 0,
-      metadatos: json['metadatos'] ?? json['metadata'],
+      id: json['id'] as int? ?? 0,
+      numeroColmena: json['numero_colmena'] as int? ?? json['hive_number'] as int? ?? 0,
+      idApiario: json['id_apiario'] as int? ?? json['apiary_id'] as int? ?? 0,
+      metadatos: json['metadatos'] as Map<String, dynamic>? ?? json['metadata'] as Map<String, dynamic>?,
       fechaCreacion: json['created_at'] != null
-          ? DateTime.tryParse(json['created_at'])
+          ? DateTime.tryParse(json['created_at'].toString())
           : null,
     );
   }
@@ -305,25 +309,25 @@ class NotificacionReina {
 
   factory NotificacionReina.fromJson(Map<String, dynamic> json) {
     return NotificacionReina(
-      id: json['id'] ?? 0,
-      apiarioId: json['apiario_id'] ?? json['apiary_id'] ?? 0,
-      colmenaId: json['colmena_id'] ?? json['hive_id'],
-      tipo: json['tipo'] ?? json['type'] ?? '',
-      titulo: json['titulo'] ?? json['title'] ?? '',
-      mensaje: json['mensaje'] ?? json['message'] ?? '',
-      prioridad: json['prioridad'] ?? json['priority'] ?? 'media',
-      leida: json['leida'] ?? json['read'] ?? false,
+      id: json['id'] as int? ?? 0,
+      apiarioId: json['apiario_id'] as int? ?? json['apiary_id'] as int? ?? 0,
+      colmenaId: json['colmena_id'] as int? ?? json['hive_id'] as int?,
+      tipo: json['tipo']?.toString() ?? json['type']?.toString() ?? '',
+      titulo: json['titulo']?.toString() ?? json['title']?.toString() ?? '',
+      mensaje: json['mensaje']?.toString() ?? json['message']?.toString() ?? '',
+      prioridad: json['prioridad']?.toString() ?? json['priority']?.toString() ?? 'media',
+      leida: json['leida'] as bool? ?? json['read'] as bool? ?? false,
       fechaCreacion: DateTime.parse(
-        json['fecha_creacion'] ??
-            json['created_at'] ??
+        json['fecha_creacion']?.toString() ??
+            json['created_at']?.toString() ??
             DateTime.now().toIso8601String(),
       ),
       fechaVencimiento: json['fecha_vencimiento'] != null ||
               json['expires_at'] != null
           ? DateTime.tryParse(
-              json['fecha_vencimiento'] ?? json['expires_at'] ?? '')
+              json['fecha_vencimiento']?.toString() ?? json['expires_at']?.toString() ?? '')
           : null,
-      metadatos: json['metadatos'] ?? json['metadata'],
+      metadatos: json['metadatos'] as Map<String, dynamic>? ?? json['metadata'] as Map<String, dynamic>?,
     );
   }
 
@@ -365,14 +369,14 @@ class Usuario {
 
   factory Usuario.fromJson(Map<String, dynamic> json) {
     return Usuario(
-      id: json['id'] ?? 0,
-      nombre: json['nombre'] ?? json['name'] ?? '',
-      username: json['username'] ?? '',
-      email: json['email'] ?? '',
-      phone: json['phone'] ?? '',
-      profilePicture: json['profile_picture'] ?? json['profile_picture_url'],
+      id: json['id'] as int? ?? 0,
+      nombre: json['nombre']?.toString() ?? json['name']?.toString() ?? '',
+      username: json['username']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      phone: json['phone']?.toString() ?? '',
+      profilePicture: json['profile_picture']?.toString() ?? json['profile_picture_url']?.toString(),
       fechaCreacion: json['created_at'] != null
-          ? DateTime.tryParse(json['created_at'])
+          ? DateTime.tryParse(json['created_at'].toString())
           : null,
     );
   }
@@ -416,18 +420,17 @@ class MonitoreoRespuesta {
 
   factory MonitoreoRespuesta.fromJson(Map<String, dynamic> json) {
     return MonitoreoRespuesta(
-      preguntaId: json['pregunta_id'] ?? '',
-      preguntaTexto: json['pregunta_texto'] ?? '',
+      preguntaId: json['pregunta_id']?.toString() ?? '',
+      preguntaTexto: json['pregunta_texto']?.toString() ?? '',
       respuesta: json['respuesta'],
-      tipoRespuesta: json['tipo_respuesta'],
+      tipoRespuesta: json['tipo_respuesta']?.toString(),
       fechaRespuesta: json['fecha_respuesta'] != null
-          ? DateTime.tryParse(json['fecha_respuesta'])
+          ? DateTime.tryParse(json['fecha_respuesta'].toString())
           : null,
     );
   }
 }
 
-// Modelo para la plantilla de pregunta del banco
 class PreguntaTemplate {
   final String id;
   final String categoria;
@@ -450,15 +453,18 @@ class PreguntaTemplate {
   });
 
   factory PreguntaTemplate.fromJson(Map<String, dynamic> json) {
+    final optionsList = json['options'] ?? json['opciones'];
     return PreguntaTemplate(
-      id: json['id'],
-      categoria: json['categoria'],
-      texto: json['pregunta'],
-      tipoRespuesta: json['tipo'],
-      obligatoria: json['obligatoria'],
-      opciones: json['opciones'] != null ? List<String>.from(json['opciones']) : null,
-      min: json['min'],
-      max: json['max'],
+      id: json['id']?.toString() ?? '',
+      categoria: json['category']?.toString() ?? json['categoria']?.toString() ?? '',
+      texto: json['question_text']?.toString() ?? json['pregunta']?.toString() ?? '',
+      tipoRespuesta: json['question_type']?.toString() ?? json['tipo']?.toString() ?? 'texto',
+      obligatoria: json['is_required'] as bool? ?? json['obligatoria'] as bool? ?? false,
+      opciones: optionsList is List
+          ? optionsList.map((e) => e.toString()).toList()
+          : null,
+      min: json['min_value'] as int? ?? json['min'] as int?,
+      max: json['max_value'] as int? ?? json['max'] as int?,
     );
   }
 }

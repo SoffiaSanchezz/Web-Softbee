@@ -17,12 +17,12 @@ class InventoryExit {
 
   factory InventoryExit.fromJson(Map<String, dynamic> json) {
     return InventoryExit(
-      id: json['id'] ?? 0,
-      insumoId: json['item_id'] ?? 0,
-      nombreInsumo: json['item_name'] ?? '',
-      cantidad: json['quantity'] ?? 0,
-      persona: json['person'] ?? '',
-      fecha: DateTime.tryParse(json['date'] ?? '') ?? DateTime.now(),
+      id: json['id'] as int? ?? 0,
+      insumoId: json['item_id'] as int? ?? 0,
+      nombreInsumo: json['item_name']?.toString() ?? '',
+      cantidad: json['quantity'] as int? ?? 0,
+      persona: json['person']?.toString() ?? '',
+      fecha: DateTime.tryParse(json['date']?.toString() ?? '') ?? DateTime.now(),
     );
   }
 

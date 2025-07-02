@@ -50,22 +50,22 @@ class UserProfile {
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
-      id: json['id'] ?? 0,
-      name: json['nombre'] ?? json['name'] ?? 'Sin nombre',
-      username: json['username'] ?? 'Sin usuario',
-      email: json['email'] ?? 'Sin email',
-      phone: json['phone'] ?? 'Sin teléfono',
-      role: json['role'] ?? 'user',
-      isVerified: json['isVerified'] ?? json['verified'] ?? false,
-      isActive: json['isActive'] ?? json['active'] ?? true,
-      createdAt: _parseDate(json['created_at']),
-      updatedAt: _parseDate(json['updated_at'] ?? json['created_at']),
+      id: json['id'] as int? ?? 0,
+      name: json['nombre']?.toString() ?? json['name']?.toString() ?? 'Sin nombre',
+      username: json['username']?.toString() ?? 'Sin usuario',
+      email: json['email']?.toString() ?? 'Sin email',
+      phone: json['phone']?.toString() ?? 'Sin teléfono',
+      role: json['role']?.toString() ?? 'user',
+      isVerified: json['isVerified'] as bool? ?? json['verified'] as bool? ?? false,
+      isActive: json['isActive'] as bool? ?? json['active'] as bool? ?? true,
+      createdAt: _parseDate(json['created_at']?.toString()),
+      updatedAt: _parseDate(json['updated_at']?.toString() ?? json['created_at']?.toString()),
       apiaries: (json['apiaries'] as List? ?? [])
-          .map((apiary) => Apiary.fromJson(apiary))
+          .map((apiary) => Apiary.fromJson(apiary as Map<String, dynamic>))
           .toList(),
       profilePicture:
-          json['profile_picture'] ??
-          json['profilePicture'] ??
+          json['profile_picture']?.toString() ??
+          json['profilePicture']?.toString() ??
           'default_profile.jpg',
     );
   }
@@ -97,17 +97,17 @@ class Apiary {
 
   factory Apiary.fromJson(Map<String, dynamic> json) {
     return Apiary(
-      id: json['id'] ?? 0,
-      name: json['nombre'] ?? json['name'] ?? 'Sin nombre',
+      id: json['id'] as int? ?? 0,
+      name: json['nombre']?.toString() ?? json['name']?.toString() ?? 'Sin nombre',
       address:
-          json['direccion'] ??
-          json['address'] ??
-          json['location'] ??
+          json['direccion']?.toString() ??
+          json['address']?.toString() ??
+          json['location']?.toString() ??
           'Sin dirección',
-      hiveCount: json['cantidad_colmenas'] ?? json['hive_count'] ?? 0,
+      hiveCount: json['cantidad_colmenas'] as int? ?? json['hive_count'] as int? ?? 0,
       appliesTreatments:
-          json['aplica_tratamientos'] ?? json['applies_treatments'] ?? false,
-      createdAt: _parseDate(json['fecha_creacion'] ?? json['created_at']),
+          json['aplica_tratamientos'] as bool? ?? json['applies_treatments'] as bool? ?? false,
+      createdAt: _parseDate(json['fecha_creacion']?.toString() ?? json['created_at']?.toString()),
     );
   }
 }
