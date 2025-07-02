@@ -238,3 +238,4 @@ class MonitoreosPorApiario {
     return MonitoreosPorApiario(apiario: json['apiario'], total: json['total']);
   }
 }
+

@@ -372,7 +372,8 @@ class _ApiariosManagementScreenState extends State<ApiariosManagementScreen>
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => ColmenasManagementScreen(),
+                                    builder: (context) =>
+                                        ColmenasManagementScreen(),
                                   ), // Reemplaza con tu widget de destino
                                 );
                               },

@@ -66,7 +66,7 @@ class Pregunta {
     this.categoria,
     this.fechaCreacion,
     this.fechaActualizacion,
-  }) : _flutterKey = (id == 0) ? const Uuid().v4() : id.toString();
+  }) : _flutterKey = (id is int) ? id.toString() : const Uuid().v4();
 
   // Getter para la clave que usará ValueKey
   String get flutterKey => _flutterKey;
@@ -249,6 +249,7 @@ class Colmena {
   final int idApiario;
   final Map<String, dynamic>? metadatos;
   final DateTime? fechaCreacion;
+  final bool activa;
 
   Colmena({
     required this.id,
@@ -256,6 +257,7 @@ class Colmena {
     required this.idApiario,
     this.metadatos,
     this.fechaCreacion,
+    this.activa = true,
   });
 
   factory Colmena.fromJson(Map<String, dynamic> json) {
@@ -267,6 +269,7 @@ class Colmena {
       fechaCreacion: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'].toString())
           : null,
+      activa: json['activa'] as bool? ?? true,
     );
   }
 
@@ -276,6 +279,7 @@ class Colmena {
       'hive_number': numeroColmena,
       'apiary_id': idApiario,
       'metadata': metadatos,
+      'activa': activa,
     };
   }
 }
@@ -468,3 +472,5 @@ class PreguntaTemplate {
     );
   }
 }
+
+

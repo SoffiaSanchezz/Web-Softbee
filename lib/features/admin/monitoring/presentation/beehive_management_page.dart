@@ -1587,10 +1587,7 @@ class _ColmenasManagementScreenState extends State<ColmenasManagementScreen>
         _showSnackBar('Colmena actualizada correctamente', Colors.green);
       } else {
         // Crear nueva colmena
-        await EnhancedApiService.crearColmena(
-          selectedApiarioId!,
-          colmenaData,
-        );
+        await EnhancedApiService.crearColmena(selectedApiarioId!, colmenaData);
         _showSnackBar('Colmena creada correctamente', Colors.green);
       }
 

@@ -438,6 +438,116 @@ class EnhancedApiService {
     }
   }
 
+  // ==================== NOTIFICACIONES REINA ====================
+  static Future<List<NotificacionReina>> obtenerNotificacionesReina({
+    int? apiarioId,
+    bool soloNoLeidas = false,
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    try {
+      String url = '$_baseUrl/queen-notifications';
+      List<String> params = [];
+
+      if (apiarioId != null) params.add('apiario_id=$apiarioId');
+      if (soloNoLeidas) params.add('unread_only=true');
+      params.add('limit=$limit');
+      params.add('offset=$offset');
+
+      if (params.isNotEmpty) {
+        url += '?${params.join('&')}';
+      }
+
+      final response = await http
+          .get(Uri.parse(url), headers: await _headers)
+          .timeout(_timeout);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => NotificacionReina.fromJson(json)).toList();
+      } else {
+        return [];
+      }
+    } catch (e) {
+      return [];
+    }
+  }
+
+  static Future<int> crearNotificacionReina(
+    NotificacionReina notificacion,
+  ) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/queen-notifications'),
+            headers: await _headers,
+            body: json.encode(notificacion.toJson()),
+          )
+          .timeout(_timeout);
+
+      if (response.statusCode == 201) {
+        final result = json.decode(response.body);
+        return result['id'] ?? -1;
+      } else {
+        throw Exception('Error al crear notificación: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión: $e');
+    }
+  }
+
+  static Future<void> marcarNotificacionComoLeida(int notificacionId) async {
+    try {
+      final response = await http
+          .put(
+            Uri.parse('$_baseUrl/queen-notifications/$notificacionId/read'),
+            headers: await _headers,
+          )
+          .timeout(_timeout);
+
+      if (response.statusCode != 200) {
+        throw Exception('Error al marcar notificación: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión: $e');
+    }
+  }
+
+  static Future<int> createMonitoreo({
+    required int idColmena,
+    required int idApiario,
+    required String fecha,
+    required List<Map<String, dynamic>> respuestas,
+    Map<String, dynamic>? datosAdicionales,
+  }) async {
+    try {
+      final body = {
+        'id_colmena': idColmena,
+        'id_apiario': idApiario,
+        'fecha': fecha,
+        'respuestas': respuestas,
+        'datos_adicionales': datosAdicionales,
+      };
+
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/monitoreos'),
+            headers: await _headers,
+            body: json.encode(body),
+          )
+          .timeout(_timeout);
+
+      if (response.statusCode == 201) {
+        final result = json.decode(response.body);
+        return result['id'];
+      } else {
+        throw Exception('Error al crear monitoreo: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión al crear monitoreo: $e');
+    }
+  }
+
 
   // ==================== UTILIDADES ====================
   static Future<bool> verificarConexion() async {
@@ -611,4 +721,3 @@ class EnhancedApiService {
         .toList();
   }
 }
-
