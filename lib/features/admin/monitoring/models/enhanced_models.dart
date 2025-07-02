@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:uuid/uuid.dart';
 
 class Opcion {
@@ -29,7 +31,7 @@ class Opcion {
 }
 
 class Pregunta {
-  int id;
+  String id;
   String texto;
   bool seleccionada;
   List<Opcion>? opciones;
@@ -42,12 +44,9 @@ class Pregunta {
   int orden;
   bool activa;
   int? apiarioId;
-  String? categoria;
+  String? categoria; // Añadido
   DateTime? fechaCreacion;
   DateTime? fechaActualizacion;
-
-  // Clave única para Flutter (para ReorderableListView)
-  final String _flutterKey;
 
   Pregunta({
     required this.id,
@@ -63,19 +62,17 @@ class Pregunta {
     this.orden = 0,
     this.activa = true,
     this.apiarioId,
-    this.categoria,
+    this.categoria, // Añadido
     this.fechaCreacion,
     this.fechaActualizacion,
-  }) : _flutterKey = (id == 0) ? const Uuid().v4() : id.toString();
+  }) : _flutterKey = (id == 0 || id == null) ? Uuid().v4() : id.toString();
 
   // Getter para la clave que usará ValueKey
   String get flutterKey => _flutterKey;
 
   factory Pregunta.fromJson(Map<String, dynamic> json) {
     return Pregunta(
-      id: json['id'] is String
-          ? int.tryParse(json['id']) ?? 0
-          : json['id'] ?? json['question_id'] ?? 0,
+      id: json['id'] ?? json['question_id'] ?? 0,
       texto: json['pregunta'] ?? json['question_text'] ?? json['texto'] ?? '',
       seleccionada: json['seleccionada'] ?? false,
       tipoRespuesta: json['tipo'] ??
@@ -96,7 +93,7 @@ class Pregunta {
       orden: json['orden'] ?? json['display_order'] ?? 0,
       activa: json['activa'] ?? json['is_active'] ?? true,
       apiarioId: json['apiario_id'] ?? json['apiary_id'],
-      categoria: json['category'] ?? json['categoria'],
+      categoria: json['category'] ?? json['categoria'], // Añadido
       fechaCreacion: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'])
           : null,
@@ -120,12 +117,12 @@ class Pregunta {
       'display_order': orden,
       'is_active': activa,
       'apiary_id': apiarioId,
-      'category': categoria,
+      'category': categoria, // Añadido
     };
   }
 
   Pregunta copyWith({
-    int? id,
+    String? id,
     String? texto,
     bool? seleccionada,
     List<Opcion>? opciones,
@@ -138,7 +135,7 @@ class Pregunta {
     int? orden,
     bool? activa,
     int? apiarioId,
-    String? categoria,
+    String? categoria, // Añadido
   }) {
     return Pregunta(
       id: id ?? this.id,
@@ -155,7 +152,7 @@ class Pregunta {
       orden: orden ?? this.orden,
       activa: activa ?? this.activa,
       apiarioId: apiarioId ?? this.apiarioId,
-      categoria: categoria ?? this.categoria,
+      categoria: categoria ?? this.categoria, // Añadido
       fechaCreacion: fechaCreacion,
       fechaActualizacion: DateTime.now(),
     );
@@ -430,6 +427,7 @@ class MonitoreoRespuesta {
   }
 }
 
+// Modelo para la plantilla de pregunta del banco
 class PreguntaTemplate {
   final String id;
   final String categoria;
@@ -458,9 +456,7 @@ class PreguntaTemplate {
       texto: json['pregunta'],
       tipoRespuesta: json['tipo'],
       obligatoria: json['obligatoria'],
-      opciones: json['opciones'] != null
-          ? List<String>.from(json['opciones'])
-          : null,
+      opciones: json['opciones'] != null ? List<String>.from(json['opciones']) : null,
       min: json['min'],
       max: json['max'],
     );

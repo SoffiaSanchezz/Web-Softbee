@@ -1551,7 +1551,6 @@ class _ColmenasManagementScreenState extends State<ColmenasManagementScreen>
   }
 
   // Guardar colmena
-
   Future<void> _saveColmena(Colmena? existingColmena) async {
     if (_numeroColmenaController.text.trim().isEmpty ||
         selectedApiarioId == null) {
@@ -1559,11 +1558,12 @@ class _ColmenasManagementScreenState extends State<ColmenasManagementScreen>
       return;
     }
 
-    try {
-      Navigator.pop(context);
+  try {
+    Navigator.pop(context);
 
       final colmenaData = {
         'hive_number': int.parse(_numeroColmenaController.text.trim()),
+        'apiary_id': selectedApiarioId,
         'activity_level': nivelActividad,
         'bee_population': poblacionAbejas,
         'food_frames': _cuadrosAlimentoController.text.isNotEmpty
@@ -1586,20 +1586,17 @@ class _ColmenasManagementScreenState extends State<ColmenasManagementScreen>
         );
         _showSnackBar('Colmena actualizada correctamente', Colors.green);
       } else {
-        // Crear nueva colmena - apiary_id se pasa en la URL, no en el body
-        await EnhancedApiService.crearColmena({
-          ...colmenaData,
-          'apiary_id': selectedApiarioId, // Solo para validación
-        });
+        // Crear nueva colmena
+        await EnhancedApiService.crearColmena(colmenaData);
         _showSnackBar('Colmena creada correctamente', Colors.green);
       }
 
-      await _loadData();
-    } catch (e) {
-      _showSnackBar('Error al guardar: $e', Colors.red);
-      debugPrint('Error al guardar colmena: $e');
-    }
+    await _loadData();
+  } catch (e) {
+    _showSnackBar('Error al guardar: $e', Colors.red);
+    debugPrint('Error al guardar colmena: $e');
   }
+}
 
   // Confirmar eliminación
   void _confirmDelete(Colmena colmena) {

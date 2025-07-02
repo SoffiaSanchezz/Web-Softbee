@@ -11,14 +11,12 @@ class EnhancedApiService {
   static Future<Map<String, String>> get _headers async {
     final token = await AuthStorage.getToken();
     if (token == null || token.isEmpty) {
-      throw Exception(
-        'No se encontró el token de autenticación. Por favor, inicia sesión de nuevo.',
-      );
+      throw Exception('No se encontró el token de autenticación. Por favor, inicia sesión de nuevo.');
     }
     return {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
-      'Authorization': 'Bearer $token',
+      if (token != null) 'Authorization': 'Bearer $token',
     };
   }
 
@@ -32,7 +30,9 @@ class EnhancedApiService {
 
       if (response.statusCode == 200) {
         final dynamic decodedBody = json.decode(response.body);
-        if (decodedBody is Map<String, dynamic>) {
+        if (decodedBody is List && decodedBody.isNotEmpty) {
+          return Usuario.fromJson(decodedBody[0]);
+        } else if (decodedBody is Map<String, dynamic>) {
           final user = Usuario.fromJson(decodedBody);
           print(
             'Perfil de usuario obtenido: ID=${user.id}, Email=${user.email}',
@@ -201,7 +201,7 @@ class EnhancedApiService {
     }
   }
 
-  // ========== Métodos para Colmenas ==========
+  // ==================== COLMEBAS ====================
   static Future<List<Colmena>> obtenerColmenas(int apiarioId) async {
     try {
       final response = await http
@@ -214,8 +214,14 @@ class EnhancedApiService {
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         return data.map((json) => Colmena.fromJson(json)).toList();
+      } else if (response.statusCode == 404) {
+        return [];
+      } else if (response.statusCode == 401) {
+        AuthStorage.deleteToken();
+        throw Exception('Sesión expirada');
+      } else {
+        throw Exception('Error al obtener colmenas: ${response.statusCode}');
       }
-      throw Exception('Error al obtener colmenas: ${response.statusCode}');
     } catch (e) {
       throw Exception('Error de conexión: $e');
     }
@@ -223,18 +229,34 @@ class EnhancedApiService {
 
   static Future<int> crearColmena(Map<String, dynamic> data) async {
     try {
+      // Validación de campos requeridos
+      if (data['apiary_id'] == null) {
+        throw Exception('El ID del apiario es requerido');
+      }
+      if (data['hive_number'] == null) {
+        throw Exception('El número de colmena es requerido');
+      }
+
+      final apiaryId = data['apiary_id'];
+      // Crear copia del mapa y remover apiary_id para evitar duplicado
+      final requestData = Map<String, dynamic>.from(data);
+      requestData.remove('apiary_id');
+
       final response = await http
           .post(
-            Uri.parse('$_baseUrl/hives'),
+            Uri.parse('$_baseUrl/apiaries/$apiaryId/hives'),
             headers: await _headers,
-            body: json.encode(data),
+            body: json.encode(requestData),
           )
           .timeout(_timeout);
 
       if (response.statusCode == 201) {
         return json.decode(response.body)['id'];
+      } else {
+        throw Exception(
+          'Error al crear colmena: ${response.statusCode} - ${response.body}'
+        );
       }
-      throw Exception('Error al crear colmena: ${response.statusCode}');
     } catch (e) {
       throw Exception('Error de conexión: $e');
     }
@@ -278,6 +300,30 @@ class EnhancedApiService {
     }
   }
 
+  static Future<Colmena?> obtenerColmenaPorNumero(
+    int apiarioId,
+    int numeroColmena,
+  ) async {
+    try {
+      final response = await http
+          .get(
+            Uri.parse('$_baseUrl/apiaries/$apiarioId/hives/number/$numeroColmena'),
+            headers: await _headers,
+          )
+          .timeout(_timeout);
+
+      if (response.statusCode == 200) {
+        return Colmena.fromJson(json.decode(response.body));
+      } else if (response.statusCode == 404) {
+        return null;
+      } else {
+        throw Exception('Error al obtener colmena: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión: $e');
+    }
+  }
+
   // ==================== PREGUNTAS ====================
   static Future<List<Pregunta>> obtenerPreguntasApiario(
     int apiarioId, {
@@ -297,16 +343,14 @@ class EnhancedApiService {
         final List<dynamic> data = json.decode(response.body);
         return data.map((json) => Pregunta.fromJson(json)).toList();
       } else {
-        throw Exception(
-          'Error al obtener preguntas: ${response.statusCode} - ${response.body}',
-        );
+        throw Exception('Error al obtener preguntas: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      rethrow;
+      return [];
     }
   }
 
-  static Future<int> crearPregunta(Pregunta pregunta) async {
+  static Future<String> crearPregunta(Pregunta pregunta) async {
     try {
       final response = await http
           .post(
@@ -318,12 +362,11 @@ class EnhancedApiService {
 
       if (response.statusCode == 201) {
         final result = json.decode(response.body);
-        return result['id'];
+        return result['id'] ?? '';
       } else {
         final errorBody = json.decode(response.body);
         throw Exception(
-          'Error al crear pregunta: ${response.statusCode} - ${errorBody['error'] ?? 'Error desconocido'}',
-        );
+            'Error al crear pregunta: ${response.statusCode} - ${errorBody['error'] ?? 'Error desconocido'}');
       }
     } catch (e) {
       throw Exception('Error de conexión: $e');
@@ -354,7 +397,7 @@ class EnhancedApiService {
   }
 
   static Future<void> actualizarPregunta(
-    int preguntaId,
+    String preguntaId,
     Map<String, dynamic> data,
   ) async {
     try {
@@ -374,7 +417,7 @@ class EnhancedApiService {
     }
   }
 
-  static Future<void> eliminarPregunta(int preguntaId) async {
+  static Future<void> eliminarPregunta(String preguntaId) async {
     try {
       final response = await http
           .delete(
@@ -489,8 +532,48 @@ class EnhancedApiService {
       };
     }
   }
+  static Future<int> crearPreguntaDesdeTemplate(
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/questions'),
+            headers: await _headers,
+            body: json.encode(data),
+          )
+          .timeout(_timeout);
 
-  // ==================== BANCO DE PREGUNTAS ====================
+      if (response.statusCode == 201) {
+        return json.decode(response.body)['id'];
+      } else {
+        final error = json.decode(response.body);
+        throw Exception('Error: ${error['error'] ?? 'desconocido'}');
+      }
+    } catch (e) {
+      throw Exception('Error de red al crear pregunta: $e');
+    }
+  }
+
+
+  static Future<Map<String, dynamic>> loadDefaultQuestions(int apiaryId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/questions/load_defaults/$apiaryId'),
+        headers: await _headers,
+      ).timeout(_timeout);
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Error al cargar preguntas por defecto: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión al cargar preguntas por defecto: $e');
+    }
+  }
+  
+  // Agregado para el banco de preguntas
   static Future<List<PreguntaTemplate>> obtenerPlantillasPreguntas() async {
     try {
       final response = await http
@@ -502,10 +585,11 @@ class EnhancedApiService {
         return data.map((json) => PreguntaTemplate.fromJson(json)).toList();
       } else {
         throw Exception(
-          'Error al obtener banco de preguntas: ${response.statusCode}',
+          'Error al obtener el banco de preguntas: ${response.statusCode}',
         );
       }
     } catch (e) {
+      // Fallback a la data local si la API falla
       print('Error de red, usando banco de preguntas local: $e');
       return _fallbackQuestionBank();
     }
@@ -601,8 +685,6 @@ class EnhancedApiService {
     ''';
     final data = json.decode(localData);
     final List<dynamic> preguntasJson = data['preguntas'];
-    return preguntasJson
-        .map((json) => PreguntaTemplate.fromJson(json))
-        .toList();
+    return preguntasJson.map((json) => PreguntaTemplate.fromJson(json)).toList();
   }
 }
