@@ -1551,7 +1551,6 @@ class _ColmenasManagementScreenState extends State<ColmenasManagementScreen>
   }
 
   // Guardar colmena
-
   Future<void> _saveColmena(Colmena? existingColmena) async {
     if (_numeroColmenaController.text.trim().isEmpty ||
         selectedApiarioId == null) {
@@ -1564,6 +1563,7 @@ class _ColmenasManagementScreenState extends State<ColmenasManagementScreen>
 
       final colmenaData = {
         'hive_number': int.parse(_numeroColmenaController.text.trim()),
+        'apiary_id': selectedApiarioId,
         'activity_level': nivelActividad,
         'bee_population': poblacionAbejas,
         'food_frames': _cuadrosAlimentoController.text.isNotEmpty
@@ -1587,7 +1587,7 @@ class _ColmenasManagementScreenState extends State<ColmenasManagementScreen>
         _showSnackBar('Colmena actualizada correctamente', Colors.green);
       } else {
         // Crear nueva colmena
-        await EnhancedApiService.crearColmena(selectedApiarioId!, colmenaData);
+        await EnhancedApiService.crearColmena(colmenaData);
         _showSnackBar('Colmena creada correctamente', Colors.green);
       }
 

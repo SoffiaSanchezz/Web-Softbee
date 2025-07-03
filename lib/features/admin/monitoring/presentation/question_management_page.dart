@@ -235,14 +235,11 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
       backgroundColor: colorAmbarClaro,
       appBar: AppBar(
         backgroundColor: colorAmarillo,
-        title: Text(
-          'Gestión de Preguntas',
-          style: GoogleFonts.poppins(
-            // Fuente Poppins
+        title: Text('Gestión de Preguntas', 
+         style: GoogleFonts.poppins( // Fuente Poppins
             fontWeight: FontWeight.w600, // Grosor de la fuente
-            color: Colors.white, // Color negro para contraste
-          ),
-        ),
+            color: Colors.white // Color negro para contraste
+          ),),
         actions: [IconButton(icon: Icon(Icons.sync), onPressed: _syncData)],
       ),
       body: isLoading
@@ -278,7 +275,7 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
     );
   }
 
-  Future<void> _agregarDesdePlantilla(
+ Future<void> _agregarDesdePlantilla(
     PreguntaTemplate template,
     int apiaryId,
   ) async {
@@ -308,6 +305,8 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
       _showSnackBar("Error al agregar pregunta: $e", Colors.red);
     }
   }
+
+
 
   Widget _buildBody(bool isTablet) {
     return Column(
@@ -1401,6 +1400,7 @@ class _QuestionsManagementScreenState extends State<QuestionsManagementScreen> {
     }
   }
 
+  // Diálogo para crear/editar pregunta
   void _showPreguntaDialog({Pregunta? pregunta}) {
     final isEditing = pregunta != null;
     if (isEditing) {

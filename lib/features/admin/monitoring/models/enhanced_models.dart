@@ -66,7 +66,7 @@ class Pregunta {
     this.categoria,
     this.fechaCreacion,
     this.fechaActualizacion,
-  }) : _flutterKey = (id is int) ? id.toString() : const Uuid().v4();
+  }) : _flutterKey = (id == 0 || id == null) ? Uuid().v4() : id.toString();
 
   // Getter para la clave que usará ValueKey
   String get flutterKey => _flutterKey;
@@ -74,14 +74,13 @@ class Pregunta {
   factory Pregunta.fromJson(Map<String, dynamic> json) {
     final optionsList = json['opciones'] ?? json['options'];
     return Pregunta(
-      id: json['id'] is String
-          ? int.tryParse(json['id'].toString()) ?? 0
-          : json['id'] as int? ?? json['question_id'] as int? ?? 0,
-      texto: json['pregunta']?.toString() ?? json['question_text']?.toString() ?? json['texto']?.toString() ?? '',
-      seleccionada: json['seleccionada'] as bool? ?? false,
-      tipoRespuesta: json['tipo']?.toString() ??
-          json['question_type']?.toString() ??
-          json['tipoRespuesta']?.toString() ??
+      id: json['id'] ?? json['question_id'] ?? 0,
+      texto: json['pregunta'] ?? json['question_text'] ?? json['texto'] ?? '',
+      seleccionada: json['seleccionada'] ?? false,
+      tipoRespuesta:
+          json['tipo'] ??
+          json['question_type'] ??
+          json['tipoRespuesta'] ??
           'texto',
       obligatoria: json['obligatoria'] as bool? ?? json['is_required'] as bool? ?? false,
       opciones: optionsList is List
@@ -91,13 +90,13 @@ class Pregunta {
               return Opcion(valor: o.toString());
             }).toList()
           : null,
-      min: json['min'] as int? ?? json['min_value'] as int?,
-      max: json['max'] as int? ?? json['max_value'] as int?,
-      dependeDe: json['depende_de']?.toString() ?? json['depends_on']?.toString() ?? json['dependeDe']?.toString(),
-      orden: json['orden'] as int? ?? json['display_order'] as int? ?? 0,
-      activa: json['activa'] as bool? ?? json['is_active'] as bool? ?? true,
-      apiarioId: json['apiario_id'] as int? ?? json['apiary_id'] as int?,
-      categoria: json['category']?.toString() ?? json['categoria']?.toString(),
+      min: json['min'] ?? json['min_value'],
+      max: json['max'] ?? json['max_value'],
+      dependeDe: json['depende_de'] ?? json['depends_on'] ?? json['dependeDe'],
+      orden: json['orden'] ?? json['display_order'] ?? 0,
+      activa: json['activa'] ?? json['is_active'] ?? true,
+      apiarioId: json['apiario_id'] ?? json['apiary_id'],
+      categoria: json['category'] ?? json['categoria'], // Añadido
       fechaCreacion: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'].toString())
           : null,
@@ -121,7 +120,7 @@ class Pregunta {
       'display_order': orden,
       'is_active': activa,
       'apiary_id': apiarioId,
-      'category': categoria,
+      'category': categoria, // Añadido
     };
   }
 
@@ -139,7 +138,7 @@ class Pregunta {
     int? orden,
     bool? activa,
     int? apiarioId,
-    String? categoria,
+    String? categoria, // Añadido
   }) {
     return Pregunta(
       id: id ?? this.id,
@@ -156,7 +155,7 @@ class Pregunta {
       orden: orden ?? this.orden,
       activa: activa ?? this.activa,
       apiarioId: apiarioId ?? this.apiarioId,
-      categoria: categoria ?? this.categoria,
+      categoria: categoria ?? this.categoria, // Añadido
       fechaCreacion: fechaCreacion,
       fechaActualizacion: DateTime.now(),
     );
@@ -435,6 +434,7 @@ class MonitoreoRespuesta {
   }
 }
 
+// Modelo para la plantilla de pregunta del banco
 class PreguntaTemplate {
   final String id;
   final String categoria;
@@ -457,20 +457,15 @@ class PreguntaTemplate {
   });
 
   factory PreguntaTemplate.fromJson(Map<String, dynamic> json) {
-    final optionsList = json['options'] ?? json['opciones'];
     return PreguntaTemplate(
-      id: json['id']?.toString() ?? '',
-      categoria: json['category']?.toString() ?? json['categoria']?.toString() ?? '',
-      texto: json['question_text']?.toString() ?? json['pregunta']?.toString() ?? '',
-      tipoRespuesta: json['question_type']?.toString() ?? json['tipo']?.toString() ?? 'texto',
-      obligatoria: json['is_required'] as bool? ?? json['obligatoria'] as bool? ?? false,
-      opciones: optionsList is List
-          ? optionsList.map((e) => e.toString()).toList()
-          : null,
-      min: json['min_value'] as int? ?? json['min'] as int?,
-      max: json['max_value'] as int? ?? json['max'] as int?,
+      id: json['id'],
+      categoria: json['categoria'],
+      texto: json['pregunta'],
+      tipoRespuesta: json['tipo'],
+      obligatoria: json['obligatoria'],
+      opciones: json['opciones'] != null ? List<String>.from(json['opciones']) : null,
+      min: json['min'],
+      max: json['max'],
     );
   }
 }
-
-
