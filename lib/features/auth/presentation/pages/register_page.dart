@@ -6,6 +6,19 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:sotfbee/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:sotfbee/features/auth/data/datasources/auth_local_datasource.dart';
 
+// --- Data Models ---
+class ApiaryData {
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController addressController = TextEditingController();
+  bool appliesTreatments = false;
+
+  void dispose() {
+    nameController.dispose();
+    addressController.dispose();
+  }
+}
+
+// --- Widget ---
 class RegisterPage extends StatefulWidget {
   @override
   _RegisterPageState createState() => _RegisterPageState();
@@ -65,8 +78,7 @@ class _RegisterPageState extends State<RegisterPage> {
         return {
           "apiary_name": apiary.nameController.text.trim(),
           "location": apiary.addressController.text.trim(),
-          "beehives_count": int.tryParse(apiary.hiveCountController.text) ?? 0,
-          "treatments": apiary.appliesTreatments ? "True" : "False",
+          "treatments": apiary.appliesTreatments,
         };
       }).toList();
 
@@ -108,7 +120,9 @@ class _RegisterPageState extends State<RegisterPage> {
       debugPrint("Error en registro: $e");
       _showErrorDialog('Error de conexión: ${e.toString()}');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -561,88 +575,79 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  // CORRECCIÓN PRINCIPAL: Layout móvil mejorado con scroll
   Widget _buildPortraitLayout(
-    BuildContext context,
-    double width,
-    double height,
-    bool isSmallScreen,
-  ) {
-    final logoSize = width * (isSmallScreen ? 0.25 : 0.10);
-    final titleSize = width * (isSmallScreen ? 0.05 : 0.02);
-    final subtitleSize = width * (isSmallScreen ? 0.04 : 0.03);
-    final verticalSpacing = height * 0.02;
+  BuildContext context,
+  double width,
+  double height,
+  bool isSmallScreen,
+) {
+  final logoSize = width * (isSmallScreen ? 0.25 : 0.10);
+  final titleSize = width * (isSmallScreen ? 0.05 : 0.02);
+  final subtitleSize = width * (isSmallScreen ? 0.04 : 0.03);
+  final verticalSpacing = height * 0.02;
 
-    return Column(
+  return SingleChildScrollView(
+    padding: EdgeInsets.only(
+      top: height * 0.05,
+      bottom: 80, 
+      left: width * 0.05,
+      right: width * 0.05,
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Header fijo
-        Container(
-          height: height * 0.2, // Reducido para dar más espacio al contenido
-          padding: EdgeInsets.all(width * 0.05),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TweenAnimationBuilder(
-                  tween: Tween<double>(begin: 0, end: 1),
-                  duration: const Duration(seconds: 1),
-                  builder: (context, value, child) {
-                    return Transform.scale(scale: value, child: child);
-                  },
-                  child: Container(
-                    height: logoSize,
-                    width: logoSize,
-                    decoration: BoxDecoration(
-                      color: primaryYellow,
-                      borderRadius: BorderRadius.circular(logoSize * 0.3),
-                      boxShadow: [
-                        BoxShadow(
-                          color: darkYellow.withOpacity(0.3),
-                          blurRadius: 15,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      Icons.hive,
-                      size: logoSize * 0.4,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                SizedBox(height: verticalSpacing * 0.5),
-                Text(
-                  'Registro SoftBee',
-                  style: GoogleFonts.poppins(
-                    fontSize: titleSize,
-                    fontWeight: FontWeight.bold,
-                    color: textDark,
-                    letterSpacing: 1.2,
-                  ),
+        TweenAnimationBuilder(
+          tween: Tween<double>(begin: 0, end: 1),
+          duration: const Duration(seconds: 1),
+          builder: (context, value, child) {
+            return Transform.scale(scale: value, child: child);
+          },
+          child: Container(
+            height: logoSize,
+            width: logoSize,
+            decoration: BoxDecoration(
+              color: primaryYellow,
+              borderRadius: BorderRadius.circular(logoSize * 0.3),
+              boxShadow: [
+                BoxShadow(
+                  color: darkYellow.withOpacity(0.3),
+                  blurRadius: 15,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
-          ),
-        ),
-        // Contenido scrolleable
-        Expanded(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: width * 0.05),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  _buildRegistrationStepper(width, height, subtitleSize),
-                  SizedBox(height: verticalSpacing),
-                  _buildFooter(width, subtitleSize),
-                ],
-              ),
+            child: Icon(
+              Icons.hive,
+              size: logoSize * 0.4,
+              color: Colors.white,
             ),
           ),
         ),
+        SizedBox(height: verticalSpacing * 0.5),
+        Text(
+          'Registro SoftBee',
+          style: GoogleFonts.poppins(
+            fontSize: titleSize,
+            fontWeight: FontWeight.bold,
+            color: textDark,
+            letterSpacing: 1.2,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              _buildRegistrationStepper(width, height, subtitleSize),
+              const SizedBox(height: 24),
+              _buildFooter(width, subtitleSize),
+            ],
+          ),
+        ),
       ],
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildLandscapeLayout(
     BuildContext context,
@@ -657,7 +662,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
     return Row(
       children: [
-        // Logo lateral fijo
         Container(
           width: width * 0.3,
           padding: EdgeInsets.all(horizontalPadding),
@@ -697,7 +701,6 @@ class _RegisterPageState extends State<RegisterPage> {
             ],
           ),
         ),
-        // Contenido scrolleable
         Expanded(
           child: SingleChildScrollView(
             padding: EdgeInsets.all(horizontalPadding),
@@ -711,7 +714,6 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  // CORRECCIÓN PRINCIPAL: Stepper con scroll mejorado
   Widget _buildRegistrationStepper(
     double width,
     double height,
@@ -727,7 +729,7 @@ class _RegisterPageState extends State<RegisterPage> {
         type: StepperType.vertical,
         currentStep: _currentStep,
         physics:
-            const NeverScrollableScrollPhysics(), // Evita conflictos de scroll
+            const NeverScrollableScrollPhysics(),
         onStepContinue: () {
           final isLastStep = _currentStep == 1;
 
@@ -781,7 +783,7 @@ class _RegisterPageState extends State<RegisterPage> {
             margin: const EdgeInsets.only(
               top: 20,
               bottom: 20,
-            ), // Más margen para mejor accesibilidad
+            ),
             child: Row(
               children: [
                 Expanded(
@@ -812,7 +814,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         padding: const EdgeInsets.symmetric(
                           vertical: 16,
-                        ), // Más padding para mejor toque
+                        ),
                       ),
                       child: _isLoading && isLastStep
                           ? const SizedBox(
@@ -857,7 +859,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       padding: const EdgeInsets.symmetric(
                         vertical: 16,
-                      ), // Más padding para mejor toque
+                      ),
                     ),
                     child: Text(
                       _currentStep > 0 ? 'Atrás' : 'Cancelar',
@@ -1015,7 +1017,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   padding: const EdgeInsets.only(
                     top: 16,
                     bottom: 20,
-                  ), // Más espacio inferior
+                  ),
                   child: OutlinedButton.icon(
                     onPressed: _addApiary,
                     icon: const Icon(Icons.add, color: darkYellow),
@@ -1330,23 +1332,6 @@ class _RegisterPageState extends State<RegisterPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                _buildTextField(
-                  controller: apiary.hiveCountController,
-                  label: 'Cantidad de colmenas',
-                  hint: 'Ej: 25',
-                  icon: Icons.grid_view_outlined,
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor ingresa la cantidad';
-                    }
-                    if (int.tryParse(value) == null || int.parse(value) <= 0) {
-                      return 'Ingresa un número válido';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
                 _buildTreatmentSwitch(
                   value: apiary.appliesTreatments,
                   onChanged: (value) {
@@ -1395,18 +1380,5 @@ class _RegisterPageState extends State<RegisterPage> {
         _apiaries.removeAt(index);
       });
     }
-  }
-}
-
-class ApiaryData {
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController addressController = TextEditingController();
-  final TextEditingController hiveCountController = TextEditingController();
-  bool appliesTreatments = false;
-
-  void dispose() {
-    nameController.dispose();
-    addressController.dispose();
-    hiveCountController.dispose();
   }
 }

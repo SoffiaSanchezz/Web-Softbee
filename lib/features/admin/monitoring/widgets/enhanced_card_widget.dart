@@ -76,9 +76,7 @@ class EnhancedCardWidget extends StatelessWidget {
                 duration: 400.ms,
                 curve: Curves.easeOutBack,
               ),
-
               SizedBox(width: 12),
-
               // Contenido
               Expanded(
                 child: Column(
@@ -114,7 +112,6 @@ class EnhancedCardWidget extends StatelessWidget {
                 delay: Duration(milliseconds: animationDelay + 100),
                 duration: 300.ms,
               ),
-
               // Trailing widget
               if (trailing != null) ...[
                 SizedBox(width: 8),
@@ -156,10 +153,31 @@ class StatCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Determinar si estamos en una pantalla grande
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isLargeScreen = screenWidth >= 768;
+    
+    // Ajustar el tamaño basado en el ancho de la pantalla
+    final double padding = isLargeScreen 
+        ? (isCompact ? 10 : 14) // Reducido para pantallas grandes
+        : (isCompact ? 12 : 16);
+        
+    final double iconSize = isLargeScreen
+        ? (isCompact ? 24 : 32) // Reducido para pantallas grandes
+        : (isCompact ? 28 : 36);
+        
+    final double fontSize = isLargeScreen
+        ? (isCompact ? 14 : 18) // Reducido para pantallas grandes
+        : (isCompact ? 16 : 20);
+        
+    final double labelSize = isLargeScreen
+        ? (isCompact ? 8 : 10) // Reducido para pantallas grandes
+        : (isCompact ? 9 : 11);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(isCompact ? 12 : 16),
+        padding: EdgeInsets.all(padding),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -179,8 +197,8 @@ class StatCardWidget extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: isCompact ? 28 : 36,
-              height: isCompact ? 28 : 36,
+              width: iconSize,
+              height: iconSize,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
@@ -192,7 +210,7 @@ class StatCardWidget extends StatelessWidget {
               child: Icon(
                 icon,
                 color: Colors.white,
-                size: isCompact ? 14 : 18,
+                size: iconSize / 2, // La mitad del tamaño del contenedor
               ),
             ).animate(
               onPlay: (controller) => controller.repeat(reverse: true),
@@ -201,22 +219,19 @@ class StatCardWidget extends StatelessWidget {
               end: Offset(1.1, 1.1),
               duration: 2000.ms,
             ),
-
             SizedBox(height: 8),
-
             Text(
               value,
               style: GoogleFonts.poppins(
-                fontSize: isCompact ? 16 : 20,
+                fontSize: fontSize,
                 fontWeight: FontWeight.bold,
                 color: color,
               ),
             ),
-
             Text(
               label,
               style: GoogleFonts.poppins(
-                fontSize: isCompact ? 9 : 11,
+                fontSize: labelSize,
                 color: Colors.black54,
                 fontWeight: FontWeight.w500,
               ),
@@ -261,9 +276,7 @@ class LoadingWidget extends StatelessWidget {
             ),
             child: Icon(Icons.hive, size: 48, color: color),
           ).animate(onPlay: (controller) => controller.repeat()).rotate(duration: 2000.ms),
-
           SizedBox(height: 24),
-
           Text(
             message,
             style: GoogleFonts.poppins(
@@ -272,9 +285,7 @@ class LoadingWidget extends StatelessWidget {
               color: color,
             ),
           ),
-
           SizedBox(height: 12),
-
           CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(color),
             strokeWidth: 2,
@@ -326,9 +337,7 @@ class EmptyStateWidget extends StatelessWidget {
               duration: 600.ms,
               curve: Curves.easeOutBack,
             ),
-
             SizedBox(height: 24),
-
             Text(
               title,
               style: GoogleFonts.poppins(
@@ -338,9 +347,7 @@ class EmptyStateWidget extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ).animate().fadeIn(delay: 200.ms),
-
             SizedBox(height: 8),
-
             Text(
               subtitle,
               style: GoogleFonts.poppins(
@@ -350,7 +357,6 @@ class EmptyStateWidget extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ).animate().fadeIn(delay: 400.ms),
-
             if (actionText != null && onAction != null) ...[
               SizedBox(height: 24),
               ElevatedButton.icon(

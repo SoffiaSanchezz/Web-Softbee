@@ -88,6 +88,8 @@ class SoftBeeApp extends StatelessWidget {
 
         switch (settings.name) {
           case '/':
+            return MaterialPageRoute(builder: (context) => const LandingPage());
+          case '/login':
             return MaterialPageRoute(builder: (context) => const LoginPage());
           case '/register':
             return MaterialPageRoute(builder: (context) => RegisterPage());

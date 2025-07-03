@@ -1,20 +1,23 @@
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 class ApiConfig {
-  // Cambia esta URL por la de tu servidor Flask
   static const String baseUrl =
-    'https://softbee-back-end-1.onrender.com/api';
-      // 'https://softbee-back-end.onrender.com/api'; // Para desarrollo local
-  // static const String baseUrl = 'http://10.0.2.2:5000'; // Para emulador Android
-  // static const String baseUrl = 'https://tu-servidor.com'; // Para producción
+      'https://softbee-back-end.onrender.com/api';
 
-  static const int defaultApiaryId = 1; // ID del apiario por defecto
+  static const int defaultApiaryId = 1;
 
-  // Headers comunes
-  static const Map<String, String> headers = {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  };
-
-  // Timeouts
   static const Duration connectTimeout = Duration(seconds: 10);
   static const Duration receiveTimeout = Duration(seconds: 10);
+
+  static const FlutterSecureStorage _storage = FlutterSecureStorage();
+
+  /// Headers dinámicos que incluyen el token
+  static Future<Map<String, String>> getHeaders() async {
+    final token = await _storage.read(key: 'auth_token');
+    return {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+  }
 }

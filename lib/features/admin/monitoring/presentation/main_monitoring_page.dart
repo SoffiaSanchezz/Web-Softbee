@@ -4,8 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:sotfbee/features/admin/monitoring/presentation/beehive_management_page.dart';
 import 'package:sotfbee/features/admin/monitoring/presentation/apiary_management_page.dart';
-import 'package:sotfbee/features/admin/monitoring/presentation/enhanced_monitoreo_page.dart';
-import 'package:sotfbee/features/admin/monitoring/presentation/queen_calendar_page.dart';
 import 'package:sotfbee/features/admin/monitoring/presentation/question_management_page.dart';
 import 'package:sotfbee/features/admin/monitoring/service/enhaced_api_service.dart';
 import '../models/enhanced_models.dart';
@@ -49,34 +47,52 @@ class _MainMonitoringScreenState extends State<MainMonitoringScreen>
     try {
       final user = await EnhancedApiService.obtenerPerfil();
       if (user != null) {
-        final results = await Future.wait([
-          EnhancedApiService.obtenerEstadisticas(),
-          EnhancedApiService.obtenerApiarios(userId: user.id),
-        ]);
+        final fetchedApiarios =
+            await EnhancedApiService.obtenerApiarios(userId: user.id);
+
+        int totalColmenas = 0;
+        if (fetchedApiarios.isNotEmpty) {
+          // Usamos Future.wait para obtener todas las colmenas en paralelo
+          final List<List<Colmena>> allColmenas = await Future.wait(
+              fetchedApiarios.map(
+                  (apiario) => EnhancedApiService.obtenerColmenas(apiario.id)));
+          // Sumamos el total de colmenas
+          totalColmenas = allColmenas.fold(0, (sum, list) => sum + list.length);
+        }
+
+        // Mantenemos la obtención de otras estadísticas
+        final otherStats = await EnhancedApiService.obtenerEstadisticas();
+
         if (mounted) {
           setState(() {
-            estadisticas = results[0] as Map<String, dynamic>;
-            apiarios = results[1] as List<Apiario>;
+            apiarios = fetchedApiarios;
+            estadisticas = {
+              'total_apiarios': fetchedApiarios.length,
+              'total_colmenas': totalColmenas,
+              'total_monitoreos': otherStats['total_monitoreos'] ?? 0,
+              'monitoreos_pendientes':
+                  otherStats['monitoreos_pendientes'] ?? 0,
+            };
           });
         }
       } else {
-        // Handle user not authenticated
+        // Manejar el caso de usuario no autenticado
+        // Podrías redirigir al login o mostrar un mensaje
       }
     } catch (e) {
       debugPrint("❌ Error al cargar datos: $e");
-      // Datos de ejemplo para desarrollo
-      estadisticas = {
-        'total_apiarios': 5,
-        'total_colmenas': 23,
-        'total_monitoreos': 156,
-        'monitoreos_pendientes': 3,
-      };
-      apiarios = [
-        Apiario(id: 1, nombre: "Apiario Norte", ubicacion: "Sector La Montaña"),
-        Apiario(id: 2, nombre: "Apiario Sur", ubicacion: "Valle del Río"),
-        Apiario(id: 3, nombre: "Apiario Central", ubicacion: "Finca El Roble"),
-      ];
-      if (mounted) setState(() {});
+      // En caso de error, mostramos 0 para evitar datos falsos
+      if (mounted) {
+        setState(() {
+          estadisticas = {
+            'total_apiarios': 0,
+            'total_colmenas': 0,
+            'total_monitoreos': 0,
+            'monitoreos_pendientes': 0,
+          };
+          apiarios = [];
+        });
+      }
     }
   }
 
@@ -243,12 +259,6 @@ class _MainMonitoringScreenState extends State<MainMonitoringScreen>
                             .slideY(begin: 0.2, end: 0),
                       ],
                     ),
-
-                  SizedBox(height: isDesktop ? 32 : 20),
-                  _buildQuickActionsSection(context, isDesktop, isTablet)
-                      .animate()
-                      .fadeIn(delay: 600.ms, duration: 600.ms)
-                      .slideY(begin: 0.2, end: 0),
                 ],
               ),
             ),
@@ -492,15 +502,6 @@ class _MainMonitoringScreenState extends State<MainMonitoringScreen>
             'Gestionar y reordenar preguntas',
             iconColor: Colors.blue[700]!,
             onTap: () => _navigateToPreguntas(),
-            isDesktop: isDesktop,
-          ),
-          Divider(height: isDesktop ? 32 : 24),
-          _buildMenuRow(
-            Icons.calendar_month_outlined,
-            'Calendario de Reinas',
-            'Programar cambios de reina',
-            iconColor: Colors.purple[700]!,
-            onTap: () => _navigateToCalendar(),
             isDesktop: isDesktop,
           ),
         ],
@@ -753,145 +754,6 @@ class _MainMonitoringScreenState extends State<MainMonitoringScreen>
     );
   }
 
-  Widget _buildQuickActionsSection(
-    BuildContext context,
-    bool isDesktop,
-    bool isTablet,
-  ) {
-    return Column(
-      children: [
-        _buildSectionTitle(
-          'Acciones Rápidas',
-          Icons.flash_on_outlined,
-          isDesktop,
-        ),
-        SizedBox(height: isDesktop ? 16 : 12),
-
-        // En desktop, mostrar acciones en grid; en tablet 2x2; en móvil, scroll horizontal
-        if (isDesktop)
-          Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 16,
-            runSpacing: 16,
-            children: _buildActionButtons(context, isDesktop),
-          )
-        else if (isTablet)
-          Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 12,
-            runSpacing: 12,
-            children: _buildActionButtons(context, isDesktop),
-          )
-        else
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: _buildActionButtons(context, isDesktop)
-                  .map(
-                    (button) => Padding(
-                      padding: const EdgeInsets.only(right: 12),
-                      child: button,
-                    ),
-                  )
-                  .toList(),
-            ),
-          ),
-      ],
-    );
-  }
-
-  List<Widget> _buildActionButtons(BuildContext context, bool isDesktop) {
-    final buttonWidth = isDesktop ? 140.0 : 120.0;
-
-    return [
-      _buildActionButton(
-        icon: Icons.sync_outlined,
-        label: 'Sincronizar',
-        onPressed: _syncData,
-        color: Colors.blue[700]!,
-        width: buttonWidth,
-        isDesktop: isDesktop,
-      ),
-      _buildActionButton(
-        icon: Icons.mic_outlined,
-        label: 'Maya',
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const EnhancedMonitoreoScreen(),
-            ),
-          );
-        },
-        color: Colors.amber[700]!,
-        width: buttonWidth,
-        isDesktop: isDesktop,
-      ),
-      _buildActionButton(
-        icon: Icons.history_outlined,
-        label: 'Historial',
-        onPressed: () => _showHistory(),
-        color: Colors.green[700]!,
-        width: buttonWidth,
-        isDesktop: isDesktop,
-      ),
-      _buildActionButton(
-        icon: Icons.settings_outlined,
-        label: 'Configuración',
-        onPressed: () => _showSettings(),
-        color: Colors.grey[700]!,
-        width: buttonWidth,
-        isDesktop: isDesktop,
-      ),
-    ];
-  }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onPressed,
-    required Color color,
-    required double width,
-    required bool isDesktop,
-  }) {
-    return SizedBox(
-      width: width,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color.withOpacity(0.1),
-          foregroundColor: color,
-          padding: EdgeInsets.symmetric(
-            vertical: isDesktop ? 20 : 16,
-            horizontal: 8,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(isDesktop ? 16 : 12),
-            side: BorderSide(color: color.withOpacity(0.3)),
-          ),
-          elevation: 0,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: isDesktop ? 28 : 24),
-            SizedBox(height: isDesktop ? 12 : 8),
-            Text(
-              label,
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w600,
-                fontSize: isDesktop ? 13 : 11,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildSectionTitle(String title, IconData icon, bool isDesktop) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -934,13 +796,6 @@ class _MainMonitoringScreenState extends State<MainMonitoringScreen>
     ).then((_) => _loadData());
   }
 
-  void _navigateToCalendar() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const QueenCalendarScreen()),
-    );
-  }
-
   // Métodos de acción
   Future<void> _syncData() async {
     try {
@@ -955,61 +810,6 @@ class _MainMonitoringScreenState extends State<MainMonitoringScreen>
     } catch (e) {
       _showSnackBar("Error en sincronización: $e", Colors.red);
     }
-  }
-
-  void _showHistory() {
-    _showSnackBar("Función de historial en desarrollo", Colors.blue);
-  }
-
-  void _showSettings() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          "Configuración",
-          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: Icon(Icons.sync, color: Colors.amber[600]),
-              title: Text(
-                "Configurar sincronización",
-                style: GoogleFonts.poppins(),
-              ),
-              onTap: () => Navigator.pop(context),
-            ),
-            ListTile(
-              leading: Icon(Icons.storage, color: Colors.green),
-              title: Text("Gestionar datos", style: GoogleFonts.poppins()),
-              onTap: () => Navigator.pop(context),
-            ),
-            ListTile(
-              leading: Icon(Icons.info, color: Colors.blue),
-              title: Text("Acerca de", style: GoogleFonts.poppins()),
-              onTap: () {
-                Navigator.pop(context);
-                _showAboutDialog();
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              "Cerrar",
-              style: GoogleFonts.poppins(
-                color: Colors.amber[600],
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   void _showApiarioDetails(Apiario apiario) {
@@ -1083,57 +883,6 @@ class _MainMonitoringScreenState extends State<MainMonitoringScreen>
           const SizedBox(width: 8),
           Expanded(
             child: Text(value, style: GoogleFonts.poppins(fontSize: 13)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showAboutDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            Icon(Icons.hive, color: Colors.amber[600]),
-            const SizedBox(width: 12),
-            Text(
-              "SoftBee",
-              style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Sistema de Monitoreo de Colmenas",
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text("Versión 2.0.0", style: GoogleFonts.poppins(fontSize: 14)),
-            const SizedBox(height: 16),
-            Text(
-              "Aplicación desarrollada para facilitar el monitoreo y gestión de apiarios de manera eficiente y moderna.",
-              style: GoogleFonts.poppins(fontSize: 13, height: 1.5),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              "Cerrar",
-              style: GoogleFonts.poppins(
-                color: Colors.amber[600],
-                fontWeight: FontWeight.w600,
-              ),
-            ),
           ),
         ],
       ),

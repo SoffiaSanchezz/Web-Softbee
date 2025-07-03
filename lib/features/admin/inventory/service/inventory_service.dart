@@ -18,7 +18,7 @@ class InventoryService {
             Uri.parse(
               '${ApiConfig.baseUrl}/apiaries/$targetApiaryId/inventory',
             ),
-            headers: ApiConfig.headers,
+            headers: await ApiConfig.getHeaders(),
           )
           .timeout(ApiConfig.connectTimeout);
 
@@ -30,7 +30,7 @@ class InventoryService {
       }
     } on SocketException {
       throw Exception('Error de conexión. Verifica tu conexión a internet.');
-    } on  Exception {
+    } on HttpException {
       throw Exception('Error HTTP. El servidor no está disponible.');
     } catch (e) {
       throw Exception('Error inesperado: $e');
@@ -43,7 +43,7 @@ class InventoryService {
       final response = await http
           .post(
             Uri.parse('${ApiConfig.baseUrl}/apiaries/${item.apiaryId}/inventory'),
-            headers: ApiConfig.headers,
+            headers: await ApiConfig.getHeaders(),
             body: json.encode(item.toCreateJson()),
           )
           .timeout(ApiConfig.connectTimeout);
@@ -68,7 +68,7 @@ class InventoryService {
       final response = await http
           .put(
             Uri.parse('${ApiConfig.baseUrl}/inventory/${item.id}'),
-            headers: ApiConfig.headers,
+            headers: await ApiConfig.getHeaders(),
             body: json.encode(item.toUpdateJson()),
           )
           .timeout(ApiConfig.connectTimeout);
@@ -90,7 +90,7 @@ class InventoryService {
       final response = await http
           .delete(
             Uri.parse('${ApiConfig.baseUrl}/inventory/$itemId'),
-            headers: ApiConfig.headers,
+            headers: await ApiConfig.getHeaders(),
           )
           .timeout(ApiConfig.connectTimeout);
 
@@ -111,7 +111,7 @@ class InventoryService {
       final response = await http
           .put(
             Uri.parse('${ApiConfig.baseUrl}/inventory/$itemId/adjust'),
-            headers: ApiConfig.headers,
+            headers: await ApiConfig.getHeaders(),
             body: json.encode({'amount': amount}),
           )
           .timeout(ApiConfig.connectTimeout);
@@ -139,7 +139,7 @@ class InventoryService {
             Uri.parse(
               '${ApiConfig.baseUrl}/inventory/search?query=${Uri.encodeComponent(query)}',
             ),
-            headers: ApiConfig.headers,
+            headers: await ApiConfig.getHeaders(),
           )
           .timeout(ApiConfig.connectTimeout);
 
@@ -162,7 +162,7 @@ class InventoryService {
       final response = await http
           .get(
             Uri.parse('${ApiConfig.baseUrl}/inventory/$itemId'),
-            headers: ApiConfig.headers,
+            headers: await ApiConfig.getHeaders(),
           )
           .timeout(ApiConfig.connectTimeout);
 

@@ -174,9 +174,7 @@ class _ApiariosManagementScreenState extends State<ApiariosManagementScreen>
               ),
             ],
           ),
-
           SizedBox(height: 16),
-
           // Barra de búsqueda
           Container(
             decoration: BoxDecoration(
@@ -248,12 +246,23 @@ class _ApiariosManagementScreenState extends State<ApiariosManagementScreen>
   }
 
   Widget _buildDesktopGrid() {
+    // Determinar el número de columnas basado en el ancho de la pantalla
+    final screenWidth = MediaQuery.of(context).size.width;
+    int crossAxisCount = 2; // Valor por defecto
+    
+    // Ajustar el número de columnas según el ancho de la pantalla
+    if (screenWidth >= 1200) {
+      crossAxisCount = 4; // 4 columnas para pantallas muy anchas
+    } else if (screenWidth >= 900) {
+      crossAxisCount = 3; // 3 columnas para pantallas medianas
+    }
+
     return GridView.builder(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 1.3,
+        crossAxisCount: crossAxisCount,
+        crossAxisSpacing: 12, // Reducido de 16 a 12
+        mainAxisSpacing: 12, // Reducido de 16 a 12
+        childAspectRatio: 1.5, // Aumentado de 1.3 a 1.5 para hacer las tarjetas más compactas
       ),
       itemCount: filteredApiarios.length,
       itemBuilder: (context, index) {
@@ -275,18 +284,24 @@ class _ApiariosManagementScreenState extends State<ApiariosManagementScreen>
   }
 
   Widget _buildApiarioCard(Apiario apiario, int index, bool isDesktop) {
+    // Ajustar el padding según el tamaño de la pantalla
+    final screenWidth = MediaQuery.of(context).size.width;
+    final double cardPadding = isDesktop 
+        ? (screenWidth >= 1200 ? 10 : 12) // Padding más pequeño para desktop
+        : 12; // Mantener el padding original para móvil
+
     return Card(
           elevation: 2,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10), // Reducido de 12 a 10
           ),
           child: InkWell(
             onTap: () => _showApiarioDetails(apiario),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10), // Reducido de 12 a 10
             child: Container(
-              padding: EdgeInsets.all(isDesktop ? 16 : 12),
+              padding: EdgeInsets.all(cardPadding),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10), // Reducido de 12 a 10
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -299,7 +314,7 @@ class _ApiariosManagementScreenState extends State<ApiariosManagementScreen>
                   Row(
                     children: [
                       Container(
-                        padding: EdgeInsets.all(8),
+                        padding: EdgeInsets.all(isDesktop ? 6 : 8), // Reducido de 8 a 6 para desktop
                         decoration: BoxDecoration(
                           color: colorAmarillo.withOpacity(0.2),
                           shape: BoxShape.circle,
@@ -307,10 +322,10 @@ class _ApiariosManagementScreenState extends State<ApiariosManagementScreen>
                         child: Icon(
                           Icons.location_on,
                           color: colorNaranja,
-                          size: isDesktop ? 20 : 18,
+                          size: isDesktop ? 16 : 18, // Reducido de 20 a 16 para desktop
                         ),
                       ),
-                      SizedBox(width: 12),
+                      SizedBox(width: 8), // Reducido de 12 a 8
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -318,7 +333,7 @@ class _ApiariosManagementScreenState extends State<ApiariosManagementScreen>
                             Text(
                               apiario.nombre,
                               style: GoogleFonts.poppins(
-                                fontSize: isDesktop ? 16 : 14,
+                                fontSize: isDesktop ? 14 : 14, // Reducido de 16 a 14 para desktop
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black87,
                               ),
@@ -328,7 +343,7 @@ class _ApiariosManagementScreenState extends State<ApiariosManagementScreen>
                             Text(
                               apiario.ubicacion,
                               style: GoogleFonts.poppins(
-                                fontSize: isDesktop ? 12 : 11,
+                                fontSize: isDesktop ? 11 : 11, // Reducido de 12 a 11 para desktop
                                 color: Colors.black54,
                               ),
                               maxLines: 2,
@@ -356,9 +371,9 @@ class _ApiariosManagementScreenState extends State<ApiariosManagementScreen>
                             value: 'edit',
                             child: Row(
                               children: [
-                                Icon(Icons.edit, color: colorNaranja, size: 18),
+                                Icon(Icons.edit, color: colorNaranja, size: 16), // Reducido de 18 a 16
                                 SizedBox(width: 8),
-                                Text('Editar', style: GoogleFonts.poppins()),
+                                Text('Editar', style: GoogleFonts.poppins(fontSize: isDesktop ? 12 : 14)), // Añadido tamaño de fuente
                               ],
                             ),
                           ),
@@ -372,8 +387,7 @@ class _ApiariosManagementScreenState extends State<ApiariosManagementScreen>
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) =>
-                                        ColmenasManagementScreen(),
+                                    builder: (context) => ColmenasManagementScreen(),
                                   ), // Reemplaza con tu widget de destino
                                 );
                               },
@@ -382,12 +396,12 @@ class _ApiariosManagementScreenState extends State<ApiariosManagementScreen>
                                   Icon(
                                     Icons.hive,
                                     color: colorAmarillo,
-                                    size: 18,
+                                    size: 16, // Reducido de 18 a 16
                                   ),
                                   SizedBox(width: 8),
                                   Text(
                                     'Ver Colmenas',
-                                    style: GoogleFonts.poppins(),
+                                    style: GoogleFonts.poppins(fontSize: isDesktop ? 12 : 14), // Añadido tamaño de fuente
                                   ),
                                 ],
                               ),
@@ -397,9 +411,9 @@ class _ApiariosManagementScreenState extends State<ApiariosManagementScreen>
                             value: 'delete',
                             child: Row(
                               children: [
-                                Icon(Icons.delete, color: Colors.red, size: 18),
+                                Icon(Icons.delete, color: Colors.red, size: 16), // Reducido de 18 a 16
                                 SizedBox(width: 8),
-                                Text('Eliminar', style: GoogleFonts.poppins()),
+                                Text('Eliminar', style: GoogleFonts.poppins(fontSize: isDesktop ? 12 : 14)), // Añadido tamaño de fuente
                               ],
                             ),
                           ),
@@ -407,23 +421,22 @@ class _ApiariosManagementScreenState extends State<ApiariosManagementScreen>
                       ),
                     ],
                   ),
-
                   if (isDesktop) ...[
-                    SizedBox(height: 12),
+                    SizedBox(height: 8), // Reducido de 12 a 8
                     Divider(),
-                    SizedBox(height: 8),
+                    SizedBox(height: 6), // Reducido de 8 a 6
                     Row(
                       children: [
                         Icon(
                           Icons.calendar_today,
-                          size: 14,
+                          size: 12, // Reducido de 14 a 12
                           color: Colors.grey,
                         ),
                         SizedBox(width: 4),
                         Text(
                           'Creado: ${apiario.fechaCreacion?.toString().split(' ')[0] ?? 'N/A'}',
                           style: GoogleFonts.poppins(
-                            fontSize: 11,
+                            fontSize: 10, // Reducido de 11 a 10
                             color: Colors.grey[600],
                           ),
                         ),
@@ -612,7 +625,6 @@ class _ApiariosManagementScreenState extends State<ApiariosManagementScreen>
           existingApiario.id,
           updatedData,
         );
-
         _showSnackBar('Apiario actualizado correctamente', colorVerde);
       } else {
         // Crear nuevo apiario
@@ -622,7 +634,6 @@ class _ApiariosManagementScreenState extends State<ApiariosManagementScreen>
         };
 
         await EnhancedApiService.crearApiario(newData);
-
         _showSnackBar('Apiario creado correctamente', colorVerde);
       }
 
@@ -674,11 +685,8 @@ class _ApiariosManagementScreenState extends State<ApiariosManagementScreen>
   Future<void> _deleteApiario(Apiario apiario) async {
     try {
       Navigator.pop(context);
-
       await EnhancedApiService.eliminarApiario(apiario.id);
-
       _showSnackBar('Apiario eliminado correctamente', colorVerde);
-
       await _loadApiarios();
     } catch (e) {
       _showSnackBar('Error al eliminar: $e', Colors.red);
@@ -743,10 +751,8 @@ class _ApiariosManagementScreenState extends State<ApiariosManagementScreen>
   Future<void> _syncData() async {
     try {
       _showSnackBar("Sincronizando apiarios...", colorAmarillo);
-
       await _checkConnection();
       await _loadApiarios();
-
       _showSnackBar("Apiarios sincronizados correctamente", colorVerde);
     } catch (e) {
       _showSnackBar("Error en sincronización: $e", Colors.red);
