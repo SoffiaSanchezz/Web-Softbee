@@ -2,7 +2,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ApiConfig {
   static const String baseUrl =
-      'https://softbee-back-end.onrender.com/api';
+      'https://softbee-back-end.onrender-1.com/api';
 
   static const int defaultApiaryId = 1;
 
