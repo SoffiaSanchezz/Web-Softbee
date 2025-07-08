@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_web_plugins/flutter_web_plugins.dart';
+import 'package:sotfbee/configure_non_web.dart' if (dart.library.html) 'package:sotfbee/configure_web.dart';
 import 'package:provider/provider.dart';
 import 'package:sotfbee/core/widgets/dashboard_menu.dart';
 import 'package:sotfbee/features/admin/history/controllers/monitoreo_controllers.dart';
@@ -19,6 +19,8 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  configureApp();
+
   // Inicializa Hive para todas las plataformas
   await Hive.initFlutter();
 
@@ -27,9 +29,6 @@ void main() async {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
-
-  // Configura la estrategia de URLs limpias en Web
-  setUrlStrategy(PathUrlStrategy());
 
   // Ejecuta la app
   runApp(
